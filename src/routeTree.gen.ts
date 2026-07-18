@@ -9,38 +9,241 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppTransferenciasRouteImport } from './routes/_app.transferencias'
+import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
+import { Route as AppReceitasRouteImport } from './routes/_app.receitas'
+import { Route as AppPerfilRouteImport } from './routes/_app.perfil'
+import { Route as AppOrcamentoRouteImport } from './routes/_app.orcamento'
+import { Route as AppMetasRouteImport } from './routes/_app.metas'
+import { Route as AppDespesasRouteImport } from './routes/_app.despesas'
+import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppContasRouteImport } from './routes/_app.contas'
+import { Route as AppConfiguracoesRouteImport } from './routes/_app.configuracoes'
+import { Route as AppCategoriasRouteImport } from './routes/_app.categorias'
+import { Route as AppCartoesRouteImport } from './routes/_app.cartoes'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppTransferenciasRoute = AppTransferenciasRouteImport.update({
+  id: '/transferencias',
+  path: '/transferencias',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReceitasRoute = AppReceitasRouteImport.update({
+  id: '/receitas',
+  path: '/receitas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPerfilRoute = AppPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOrcamentoRoute = AppOrcamentoRouteImport.update({
+  id: '/orcamento',
+  path: '/orcamento',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMetasRoute = AppMetasRouteImport.update({
+  id: '/metas',
+  path: '/metas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDespesasRoute = AppDespesasRouteImport.update({
+  id: '/despesas',
+  path: '/despesas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppContasRoute = AppContasRouteImport.update({
+  id: '/contas',
+  path: '/contas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConfiguracoesRoute = AppConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCategoriasRoute = AppCategoriasRouteImport.update({
+  id: '/categorias',
+  path: '/categorias',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCartoesRoute = AppCartoesRouteImport.update({
+  id: '/cartoes',
+  path: '/cartoes',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
+  '/cartoes': typeof AppCartoesRoute
+  '/categorias': typeof AppCategoriasRoute
+  '/configuracoes': typeof AppConfiguracoesRoute
+  '/contas': typeof AppContasRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/despesas': typeof AppDespesasRoute
+  '/metas': typeof AppMetasRoute
+  '/orcamento': typeof AppOrcamentoRoute
+  '/perfil': typeof AppPerfilRoute
+  '/receitas': typeof AppReceitasRoute
+  '/relatorios': typeof AppRelatoriosRoute
+  '/transferencias': typeof AppTransferenciasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
+  '/cartoes': typeof AppCartoesRoute
+  '/categorias': typeof AppCategoriasRoute
+  '/configuracoes': typeof AppConfiguracoesRoute
+  '/contas': typeof AppContasRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/despesas': typeof AppDespesasRoute
+  '/metas': typeof AppMetasRoute
+  '/orcamento': typeof AppOrcamentoRoute
+  '/perfil': typeof AppPerfilRoute
+  '/receitas': typeof AppReceitasRoute
+  '/relatorios': typeof AppRelatoriosRoute
+  '/transferencias': typeof AppTransferenciasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
+  '/_app/cartoes': typeof AppCartoesRoute
+  '/_app/categorias': typeof AppCategoriasRoute
+  '/_app/configuracoes': typeof AppConfiguracoesRoute
+  '/_app/contas': typeof AppContasRoute
+  '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/despesas': typeof AppDespesasRoute
+  '/_app/metas': typeof AppMetasRoute
+  '/_app/orcamento': typeof AppOrcamentoRoute
+  '/_app/perfil': typeof AppPerfilRoute
+  '/_app/receitas': typeof AppReceitasRoute
+  '/_app/relatorios': typeof AppRelatoriosRoute
+  '/_app/transferencias': typeof AppTransferenciasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/cadastro'
+    | '/login'
+    | '/cartoes'
+    | '/categorias'
+    | '/configuracoes'
+    | '/contas'
+    | '/dashboard'
+    | '/despesas'
+    | '/metas'
+    | '/orcamento'
+    | '/perfil'
+    | '/receitas'
+    | '/relatorios'
+    | '/transferencias'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cadastro'
+    | '/login'
+    | '/cartoes'
+    | '/categorias'
+    | '/configuracoes'
+    | '/contas'
+    | '/dashboard'
+    | '/despesas'
+    | '/metas'
+    | '/orcamento'
+    | '/perfil'
+    | '/receitas'
+    | '/relatorios'
+    | '/transferencias'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/cadastro'
+    | '/login'
+    | '/_app/cartoes'
+    | '/_app/categorias'
+    | '/_app/configuracoes'
+    | '/_app/contas'
+    | '/_app/dashboard'
+    | '/_app/despesas'
+    | '/_app/metas'
+    | '/_app/orcamento'
+    | '/_app/perfil'
+    | '/_app/receitas'
+    | '/_app/relatorios'
+    | '/_app/transferencias'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  CadastroRoute: typeof CadastroRoute
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +251,131 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/transferencias': {
+      id: '/_app/transferencias'
+      path: '/transferencias'
+      fullPath: '/transferencias'
+      preLoaderRoute: typeof AppTransferenciasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/relatorios': {
+      id: '/_app/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AppRelatoriosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/receitas': {
+      id: '/_app/receitas'
+      path: '/receitas'
+      fullPath: '/receitas'
+      preLoaderRoute: typeof AppReceitasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/perfil': {
+      id: '/_app/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AppPerfilRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/orcamento': {
+      id: '/_app/orcamento'
+      path: '/orcamento'
+      fullPath: '/orcamento'
+      preLoaderRoute: typeof AppOrcamentoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/metas': {
+      id: '/_app/metas'
+      path: '/metas'
+      fullPath: '/metas'
+      preLoaderRoute: typeof AppMetasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/despesas': {
+      id: '/_app/despesas'
+      path: '/despesas'
+      fullPath: '/despesas'
+      preLoaderRoute: typeof AppDespesasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/contas': {
+      id: '/_app/contas'
+      path: '/contas'
+      fullPath: '/contas'
+      preLoaderRoute: typeof AppContasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/configuracoes': {
+      id: '/_app/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AppConfiguracoesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/categorias': {
+      id: '/_app/categorias'
+      path: '/categorias'
+      fullPath: '/categorias'
+      preLoaderRoute: typeof AppCategoriasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/cartoes': {
+      id: '/_app/cartoes'
+      path: '/cartoes'
+      fullPath: '/cartoes'
+      preLoaderRoute: typeof AppCartoesRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppCartoesRoute: typeof AppCartoesRoute
+  AppCategoriasRoute: typeof AppCategoriasRoute
+  AppConfiguracoesRoute: typeof AppConfiguracoesRoute
+  AppContasRoute: typeof AppContasRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppDespesasRoute: typeof AppDespesasRoute
+  AppMetasRoute: typeof AppMetasRoute
+  AppOrcamentoRoute: typeof AppOrcamentoRoute
+  AppPerfilRoute: typeof AppPerfilRoute
+  AppReceitasRoute: typeof AppReceitasRoute
+  AppRelatoriosRoute: typeof AppRelatoriosRoute
+  AppTransferenciasRoute: typeof AppTransferenciasRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppCartoesRoute: AppCartoesRoute,
+  AppCategoriasRoute: AppCategoriasRoute,
+  AppConfiguracoesRoute: AppConfiguracoesRoute,
+  AppContasRoute: AppContasRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppDespesasRoute: AppDespesasRoute,
+  AppMetasRoute: AppMetasRoute,
+  AppOrcamentoRoute: AppOrcamentoRoute,
+  AppPerfilRoute: AppPerfilRoute,
+  AppReceitasRoute: AppReceitasRoute,
+  AppRelatoriosRoute: AppRelatoriosRoute,
+  AppTransferenciasRoute: AppTransferenciasRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  CadastroRoute: CadastroRoute,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
