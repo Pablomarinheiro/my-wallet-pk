@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Wallet, CreditCard, ArrowDownCircle, ArrowUpCircle,
   ArrowLeftRight, Tags, Target, PiggyBank, FileBarChart, User, Settings,
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/use-auth";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -133,6 +134,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const displayName = (user?.user_metadata?.full_name as string | undefined) ?? user?.email?.split("@")[0] ?? "Usuário";
+  const initials = displayName.split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
+  const handleSignOut = async () => {
+    await signOut();
+    navigate({ to: "/login", replace: true });
+  };
 
   return (
     <div className="min-h-dvh bg-background">
@@ -192,11 +201,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-accent" aria-label="Menu do usuário">
                     <Avatar className="h-9 w-9">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">MW</AvatarFallback>
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">{initials}</AvatarFallback>
                     </Avatar>
                     <div className="hidden text-left md:block">
-                      <div className="text-[13px] font-semibold leading-tight text-foreground">Marina Weber</div>
-                      <div className="text-[11px] leading-tight text-muted-foreground">marina@mywallet.app</div>
+                      <div className="text-[13px] font-semibold leading-tight text-foreground truncate max-w-[160px]">{displayName}</div>
+                      <div className="text-[11px] leading-tight text-muted-foreground truncate max-w-[160px]">{user?.email}</div>
                     </div>
                   </button>
                 </DropdownMenuTrigger>
@@ -206,7 +215,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <DropdownMenuItem asChild><Link to="/perfil"><User className="h-4 w-4" />Perfil</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link to="/configuracoes"><Settings className="h-4 w-4" />Configurações</Link></DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild><Link to="/login" className="text-destructive"><LogOut className="h-4 w-4" />Sair</Link></DropdownMenuItem>
+                  <DropdownMenuItem className="text-destructive" onSelect={handleSignOut}>
+                    <LogOut className="h-4 w-4" />Sair
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
