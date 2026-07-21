@@ -8,8 +8,10 @@ export type AccountRow = Tables<"accounts">;
 export type CardRow = Tables<"cards">;
 export type CategoryRow = Tables<"categories">;
 export type TransactionRow = Tables<"transactions">;
+export type GoalRow = Tables<"goals">;
+export type BudgetRow = Tables<"budgets">;
 
-type TableName = "accounts" | "cards" | "categories" | "transactions";
+type TableName = "accounts" | "cards" | "categories" | "transactions" | "goals" | "budgets";
 
 function useRealtime(table: TableName, userId: string | undefined) {
   const qc = useQueryClient();
@@ -202,5 +204,87 @@ export function useDeleteTransaction() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions", user?.id] }),
+  });
+}
+
+// ---------- GOALS ----------
+export function useGoals() {
+  const { user } = useAuth();
+  useRealtime("goals", user?.id);
+  return useQuery({
+    queryKey: ["goals", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("goals").select("*").order("created_at");
+      if (error) throw error;
+      return data as GoalRow[];
+    },
+  });
+}
+export function useUpsertGoal() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: Partial<GoalRow> & { id?: string }) => {
+      if (!user) throw new Error("Não autenticado");
+      const row = { ...input, user_id: user.id } as TablesInsert<"goals">;
+      const { error } = input.id
+        ? await supabase.from("goals").update(row as TablesUpdate<"goals">).eq("id", input.id)
+        : await supabase.from("goals").insert(row);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["goals", user?.id] }),
+  });
+}
+export function useDeleteGoal() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("goals").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["goals", user?.id] }),
+  });
+}
+
+// ---------- BUDGETS ----------
+export function useBudgets() {
+  const { user } = useAuth();
+  useRealtime("budgets", user?.id);
+  return useQuery({
+    queryKey: ["budgets", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("budgets").select("*").order("created_at");
+      if (error) throw error;
+      return data as BudgetRow[];
+    },
+  });
+}
+export function useUpsertBudget() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: Partial<BudgetRow> & { id?: string }) => {
+      if (!user) throw new Error("Não autenticado");
+      const row = { ...input, user_id: user.id } as TablesInsert<"budgets">;
+      const { error } = input.id
+        ? await supabase.from("budgets").update(row as TablesUpdate<"budgets">).eq("id", input.id)
+        : await supabase.from("budgets").insert(row);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["budgets", user?.id] }),
+  });
+}
+export function useDeleteBudget() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("budgets").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["budgets", user?.id] }),
   });
 }
