@@ -1,38 +1,36 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { PageHeader } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  ArrowUpRight, ArrowDownRight, Plus, TrendingUp, TrendingDown,
-  Wallet, PiggyBank, CreditCard, Target, MoreHorizontal,
-  Utensils, Car, ShoppingCart, Gamepad2, HeartPulse, GraduationCap, Home as HomeIcon, Briefcase, Laptop,
+  ArrowUpRight, ArrowDownRight, Plus, Wallet, PiggyBank, CreditCard,
+  Target, Loader2, Calendar,
 } from "lucide-react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
   Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
+import { currency, shortDate } from "@/lib/mock-data";
+import { getIcon } from "@/lib/icons";
+import { useAuth } from "@/hooks/use-auth";
 import {
-  accounts, cards, cashflow, categoryPie, goals, budgets, transactions, totals, currency, shortDate,
-} from "@/lib/mock-data";
+  useAccounts, useBudgets, useCards, useCategories, useGoals, useTransactions,
+} from "@/hooks/use-mywallet";
 
 export const Route = createFileRoute("/_app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — My Wallet" }] }),
   component: Dashboard,
 });
 
-const iconMap: Record<string, any> = {
-  utensils: Utensils, car: Car, "shopping-cart": ShoppingCart,
-  "gamepad-2": Gamepad2, "heart-pulse": HeartPulse, "graduation-cap": GraduationCap,
-  home: HomeIcon, briefcase: Briefcase, laptop: Laptop, "trending-up": TrendingUp,
-};
+const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
-function KpiCard({
-  label, value, delta, positive, icon: Icon, tint,
-}: { label: string; value: string; delta: string; positive: boolean; icon: any; tint: string }) {
+function KpiCard({ label, value, icon: Icon, tint, hint }: {
+  label: string; value: string; icon: any; tint: string; hint?: string;
+}) {
   return (
     <Card className="rounded-3xl border-border/70 shadow-soft transition-shadow hover:shadow-elevated">
       <CardContent className="p-5">
@@ -45,48 +43,135 @@ function KpiCard({
             <Icon className="h-5 w-5" />
           </div>
         </div>
-        <div className="mt-4 flex items-center gap-1.5 text-xs">
-          <span className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 font-semibold ${positive ? "bg-success/12 text-success" : "bg-destructive/12 text-destructive"}`}>
-            {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-            {delta}
-          </span>
-          <span className="text-muted-foreground">vs. mês anterior</span>
-        </div>
+        {hint && <div className="mt-4 text-xs text-muted-foreground">{hint}</div>}
       </CardContent>
     </Card>
   );
 }
 
 function Dashboard() {
+  const { user } = useAuth();
+  const { data: accounts = [], isLoading: la } = useAccounts();
+  const { data: cards = [] } = useCards();
+  const { data: categories = [] } = useCategories();
+  const { data: transactions = [], isLoading: lt } = useTransactions();
+  const { data: goals = [] } = useGoals();
+  const { data: budgets = [] } = useBudgets();
+
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+
+  const monthTx = useMemo(
+    () => transactions.filter((t) => {
+      const d = new Date(t.date);
+      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }),
+    [transactions, thisMonth, thisYear],
+  );
+
+  const income = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const expense = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
+  const balance = accounts.reduce((s, a) => s + Number(a.balance), 0);
+  const savings = income - expense;
+
+  const cashflow = useMemo(() => {
+    const buckets: Array<{ month: string; income: number; expense: number }> = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(thisYear, thisMonth - i, 1);
+      buckets.push({ month: MONTH_LABELS[d.getMonth()], income: 0, expense: 0 });
+    }
+    const start = new Date(thisYear, thisMonth - 6, 1);
+    for (const t of transactions) {
+      const d = new Date(t.date);
+      if (d < start) continue;
+      const idx = (d.getFullYear() - start.getFullYear()) * 12 + (d.getMonth() - start.getMonth());
+      if (idx < 0 || idx >= buckets.length) continue;
+      if (t.type === "income") buckets[idx].income += Number(t.amount);
+      else if (t.type === "expense") buckets[idx].expense += Number(t.amount);
+    }
+    return buckets;
+  }, [transactions, thisMonth, thisYear]);
+
+  const categoryPie = useMemo(() => {
+    const map = new Map<string, { name: string; value: number; color: string }>();
+    for (const t of monthTx) {
+      if (t.type !== "expense") continue;
+      const key = t.category?.id ?? "none";
+      const name = t.category?.name ?? "Sem categoria";
+      const color = t.category?.color ?? "#64748B";
+      const cur = map.get(key) ?? { name, value: 0, color };
+      cur.value += Number(t.amount);
+      map.set(key, cur);
+    }
+    return Array.from(map.values()).sort((a, b) => b.value - a.value);
+  }, [monthTx]);
+
+  const budgetChart = useMemo(() => {
+    const spentByCat = new Map<string, number>();
+    for (const t of monthTx) {
+      if (t.type !== "expense" || !t.category_id) continue;
+      spentByCat.set(t.category_id, (spentByCat.get(t.category_id) ?? 0) + Number(t.amount));
+    }
+    return budgets
+      .filter((b) => b.month === thisMonth + 1 && b.year === thisYear)
+      .map((b) => ({
+        name: b.category_name,
+        Orçado: Number(b.amount_limit),
+        Gasto: b.category_id ? (spentByCat.get(b.category_id) ?? 0) : 0,
+      }));
+  }, [budgets, monthTx, thisMonth, thisYear]);
+
+  const upcoming = useMemo(() => {
+    const today = new Date(thisYear, thisMonth, now.getDate());
+    const items: Array<{ id: string; date: Date; label: string; amount: number; tone: string }> = [];
+    for (const t of transactions) {
+      const d = new Date(t.date);
+      if (t.status === "pending" && d >= today) {
+        items.push({
+          id: t.id, date: d, label: t.description,
+          amount: Number(t.amount),
+          tone: t.type === "income" ? "text-success" : "text-destructive",
+        });
+      }
+    }
+    for (const c of cards) {
+      const due = new Date(thisYear, thisMonth, c.due_day);
+      if (due < today) due.setMonth(due.getMonth() + 1);
+      items.push({
+        id: `card-${c.id}`, date: due, label: `Fatura ${c.name}`,
+        amount: Number(c.used), tone: "text-destructive",
+      });
+    }
+    return items.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 5);
+  }, [transactions, cards, thisMonth, thisYear, now]);
+
+  const firstName = (user?.user_metadata?.full_name ?? user?.email ?? "").toString().split(" ")[0] || "usuário";
+  const mainCard = cards[0];
+  const monthName = MONTH_LABELS[thisMonth];
+
+  if (la || lt) {
+    return <div className="grid place-items-center py-24"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
-        badge="Julho 2026"
-        title="Olá, Marina 👋"
+        badge={`${monthName} ${thisYear}`}
+        title={`Olá, ${firstName} 👋`}
         description="Aqui está o resumo das suas finanças este mês."
         actions={
-          <>
-            <Tabs defaultValue="month">
-              <TabsList className="rounded-2xl">
-                <TabsTrigger value="week" className="rounded-xl">Semana</TabsTrigger>
-                <TabsTrigger value="month" className="rounded-xl">Mês</TabsTrigger>
-                <TabsTrigger value="year" className="rounded-xl">Ano</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Button className="rounded-2xl shadow-soft"><Plus className="h-4 w-4" /> Nova transação</Button>
-          </>
+          <Button asChild className="rounded-2xl shadow-soft"><Link to="/despesas"><Plus className="h-4 w-4" /> Nova transação</Link></Button>
         }
       />
 
-      {/* KPI grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Saldo total" value={currency(totals.balance)} delta="+8,2%" positive icon={Wallet} tint="bg-primary/10 text-primary" />
-        <KpiCard label="Receitas do mês" value={currency(totals.income)} delta="+12,4%" positive icon={ArrowUpRight} tint="bg-success/12 text-success" />
-        <KpiCard label="Despesas do mês" value={currency(totals.expense)} delta="+3,1%" positive={false} icon={ArrowDownRight} tint="bg-destructive/12 text-destructive" />
-        <KpiCard label="Economia" value={currency(totals.savings)} delta="+18,7%" positive icon={PiggyBank} tint="bg-warning/15 text-warning" />
+        <KpiCard label="Saldo total" value={currency(balance)} icon={Wallet} tint="bg-primary/10 text-primary" hint={`${accounts.length} conta(s)`} />
+        <KpiCard label="Receitas do mês" value={currency(income)} icon={ArrowUpRight} tint="bg-success/12 text-success" hint={`${monthTx.filter((t) => t.type === "income").length} entrada(s)`} />
+        <KpiCard label="Despesas do mês" value={currency(expense)} icon={ArrowDownRight} tint="bg-destructive/12 text-destructive" hint={`${monthTx.filter((t) => t.type === "expense").length} saída(s)`} />
+        <KpiCard label="Economia" value={currency(savings)} icon={PiggyBank} tint="bg-warning/15 text-warning" hint="Receitas − Despesas" />
       </div>
 
-      {/* Charts row */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="rounded-3xl border-border/70 shadow-soft xl:col-span-2">
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
@@ -116,10 +201,7 @@ function Dashboard() {
                   <CartesianGrid vertical={false} stroke="hsl(215 20% 92%)" />
                   <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#64748B" }} />
                   <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#64748B" }} tickFormatter={(v) => `${v / 1000}k`} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: 16, border: "1px solid #E2E8F0", boxShadow: "0 8px 24px -8px rgba(15,23,42,.12)" }}
-                    formatter={(v: number) => currency(v)}
-                  />
+                  <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid #E2E8F0" }} formatter={(v: number) => currency(v)} />
                   <Area type="monotone" dataKey="income" stroke="#2563EB" strokeWidth={2.5} fill="url(#gInc)" />
                   <Area type="monotone" dataKey="expense" stroke="#EF4444" strokeWidth={2.5} fill="url(#gExp)" />
                 </AreaChart>
@@ -131,61 +213,72 @@ function Dashboard() {
         <Card className="rounded-3xl border-border/70 shadow-soft">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Gastos por categoria</CardTitle>
-            <p className="mt-1 text-xs text-muted-foreground">Julho de 2026</p>
+            <p className="mt-1 text-xs text-muted-foreground">{monthName} de {thisYear}</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={categoryPie} dataKey="value" nameKey="name" innerRadius={54} outerRadius={80} paddingAngle={3} strokeWidth={0}>
-                    {categoryPie.map((c) => <Cell key={c.name} fill={c.color} />)}
-                  </Pie>
-                  <Tooltip formatter={(v: number) => currency(v)} contentStyle={{ borderRadius: 16, border: "1px solid #E2E8F0" }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-2 space-y-2">
-              {categoryPie.slice(0, 4).map((c) => (
-                <div key={c.name} className="flex items-center justify-between text-xs">
-                  <span className="inline-flex items-center gap-2 text-muted-foreground">
-                    <span className="h-2 w-2 rounded-full" style={{ background: c.color }} /> {c.name}
-                  </span>
-                  <span className="font-semibold text-foreground">{currency(c.value)}</span>
+            {categoryPie.length === 0 ? (
+              <div className="py-10 text-center text-sm text-muted-foreground">Sem despesas este mês</div>
+            ) : (
+              <>
+                <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={categoryPie} dataKey="value" nameKey="name" innerRadius={54} outerRadius={80} paddingAngle={3} strokeWidth={0}>
+                        {categoryPie.map((c) => <Cell key={c.name} fill={c.color} />)}
+                      </Pie>
+                      <Tooltip formatter={(v: number) => currency(v)} contentStyle={{ borderRadius: 16, border: "1px solid #E2E8F0" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-              ))}
-            </div>
+                <div className="mt-2 space-y-2">
+                  {categoryPie.slice(0, 4).map((c) => (
+                    <div key={c.name} className="flex items-center justify-between text-xs">
+                      <span className="inline-flex items-center gap-2 text-muted-foreground">
+                        <span className="h-2 w-2 rounded-full" style={{ background: c.color }} /> {c.name}
+                      </span>
+                      <span className="font-semibold text-foreground">{currency(c.value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Accounts + Cards */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="rounded-3xl border-border/70 shadow-soft xl:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-base">Contas</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">{accounts.length} contas conectadas</p>
+              <p className="mt-1 text-xs text-muted-foreground">{accounts.length} conta(s) conectada(s)</p>
             </div>
             <Button asChild size="sm" variant="ghost" className="rounded-xl text-primary"><Link to="/contas">Ver todas</Link></Button>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {accounts.map((a) => (
-                <div key={a.id} className="group flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3.5 transition-colors hover:bg-secondary/50">
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-white" style={{ background: a.color }}>
-                    <Wallet className="h-5 w-5" />
+            {accounts.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                Você ainda não cadastrou nenhuma conta.{" "}
+                <Link to="/contas" className="font-semibold text-primary">Adicionar conta</Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {accounts.map((a) => (
+                  <div key={a.id} className="group flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3.5 transition-colors hover:bg-secondary/50">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-white" style={{ background: a.color }}>
+                      <Wallet className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold text-foreground">{a.name}</div>
+                      <div className="text-[11px] text-muted-foreground">{a.type}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-foreground">{currency(Number(a.balance))}</div>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-foreground">{a.name}</div>
-                    <div className="text-[11px] text-muted-foreground">{a.type}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-foreground">{currency(a.balance)}</div>
-                    <div className="text-[11px] text-success">+2,1%</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -198,130 +291,147 @@ function Dashboard() {
             <Button asChild size="sm" variant="ghost" className="rounded-xl text-primary"><Link to="/cartoes">Ver todos</Link></Button>
           </CardHeader>
           <CardContent>
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[oklch(0.22_0.03_265)] to-[oklch(0.12_0.02_265)] p-5 text-white shadow-elevated">
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] uppercase tracking-widest text-white/60">Nubank Ultravioleta</div>
-                <CreditCard className="h-5 w-5 opacity-80" />
+            {!mainCard ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                Nenhum cartão cadastrado.{" "}
+                <Link to="/cartoes" className="font-semibold text-primary">Adicionar cartão</Link>
               </div>
-              <div className="mt-6 font-mono text-base tracking-widest">•••• •••• •••• 4821</div>
-              <div className="mt-4 flex items-end justify-between">
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-white/60">Fatura atual</div>
-                  <div className="text-lg font-bold">{currency(cards[0].used)}</div>
+            ) : (
+              <>
+                <div className="relative overflow-hidden rounded-2xl p-5 text-white shadow-elevated" style={{ background: mainCard.color }}>
+                  <div className="flex items-center justify-between">
+                    <div className="text-[11px] uppercase tracking-widest text-white/60">{mainCard.name}</div>
+                    <CreditCard className="h-5 w-5 opacity-80" />
+                  </div>
+                  <div className="mt-6 font-mono text-base tracking-widest">•••• •••• •••• ••••</div>
+                  <div className="mt-4 flex items-end justify-between">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-white/60">Fatura atual</div>
+                      <div className="text-lg font-bold">{currency(Number(mainCard.used))}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] uppercase tracking-wider text-white/60">Vence</div>
+                      <div className="text-sm font-semibold">Dia {mainCard.due_day}</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-[10px] uppercase tracking-wider text-white/60">Vence</div>
-                  <div className="text-sm font-semibold">05/08</div>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Limite usado</span>
+                    <span className="font-semibold text-foreground">{currency(Number(mainCard.used))} / {currency(Number(mainCard.limit))}</span>
+                  </div>
+                  <Progress value={Number(mainCard.limit) > 0 ? (Number(mainCard.used) / Number(mainCard.limit)) * 100 : 0} className="h-2" />
                 </div>
-              </div>
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-white/8 blur-2xl" />
-            </div>
-
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Limite usado</span>
-                <span className="font-semibold text-foreground">{currency(cards[0].used)} / {currency(cards[0].limit)}</span>
-              </div>
-              <Progress value={(cards[0].used / cards[0].limit) * 100} className="h-2" />
-            </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Transactions + Goals + Budget */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="rounded-3xl border-border/70 shadow-soft xl:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-base">Últimas transações</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">Movimentações recentes das suas contas</p>
+              <p className="mt-1 text-xs text-muted-foreground">Movimentações recentes</p>
             </div>
             <Button asChild size="sm" variant="ghost" className="rounded-xl text-primary"><Link to="/despesas">Ver todas</Link></Button>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="divide-y divide-border/70">
-              {transactions.slice(0, 6).map((t) => {
-                const Icon = iconMap[t.categoryIcon] ?? Wallet;
-                return (
-                  <div key={t.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-white" style={{ background: t.categoryColor }}>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-foreground">{t.description}</div>
-                      <div className="truncate text-[11px] text-muted-foreground">{t.category} · {t.account} · {shortDate(t.date)}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className={`text-sm font-bold ${t.type === "income" ? "text-success" : "text-foreground"}`}>
-                        {t.type === "income" ? "+" : "−"} {currency(t.amount)}
+            {transactions.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">Nenhuma transação ainda.</div>
+            ) : (
+              <div className="divide-y divide-border/70">
+                {transactions.slice(0, 6).map((t) => {
+                  const Icon = getIcon(t.category?.icon);
+                  const catColor = t.category?.color ?? "#64748B";
+                  return (
+                    <div key={t.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-3">
+                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-white" style={{ background: catColor }}>
+                        <Icon className="h-4 w-4" />
                       </div>
-                      {t.status === "pending" && <Badge variant="secondary" className="mt-0.5 rounded-full bg-warning/15 px-1.5 py-0 text-[10px] text-warning">Pendente</Badge>}
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-foreground">{t.description}</div>
+                        <div className="truncate text-[11px] text-muted-foreground">{t.category?.name ?? "—"} · {t.account?.name ?? "—"} · {shortDate(t.date)}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-sm font-bold ${t.type === "income" ? "text-success" : "text-foreground"}`}>
+                          {t.type === "income" ? "+" : "−"} {currency(Number(t.amount))}
+                        </div>
+                        {t.status === "pending" && <Badge variant="secondary" className="mt-0.5 rounded-full bg-warning/15 px-1.5 py-0 text-[10px] text-warning">Pendente</Badge>}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <Card className="rounded-3xl border-border/70 shadow-soft">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div>
-                <CardTitle className="text-base">Metas</CardTitle>
-                <p className="mt-1 text-xs text-muted-foreground">Progresso das metas ativas</p>
-              </div>
-              <Button asChild size="sm" variant="ghost" className="rounded-xl text-primary"><Link to="/metas">Ver</Link></Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {goals.slice(0, 3).map((g) => {
-                const pct = Math.min(100, Math.round((g.current / g.target) * 100));
-                return (
-                  <div key={g.id}>
-                    <div className="mb-1.5 flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-white" style={{ background: g.color }}>
-                          <Target className="h-4 w-4" />
-                        </div>
-                        <span className="truncate font-medium text-foreground">{g.name}</span>
+        <Card className="rounded-3xl border-border/70 shadow-soft">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-base">Metas</CardTitle>
+              <p className="mt-1 text-xs text-muted-foreground">Progresso das metas ativas</p>
+            </div>
+            <Button asChild size="sm" variant="ghost" className="rounded-xl text-primary"><Link to="/metas">Ver</Link></Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {goals.length === 0 ? (
+              <div className="py-4 text-center text-sm text-muted-foreground">Sem metas cadastradas.</div>
+            ) : goals.slice(0, 3).map((g) => {
+              const pct = Number(g.target) > 0 ? Math.min(100, Math.round((Number(g.current) / Number(g.target)) * 100)) : 0;
+              return (
+                <div key={g.id}>
+                  <div className="mb-1.5 flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-white" style={{ background: g.color }}>
+                        <Target className="h-4 w-4" />
                       </div>
-                      <span className="text-xs font-semibold text-muted-foreground">{pct}%</span>
+                      <span className="truncate font-medium text-foreground">{g.name}</span>
                     </div>
-                    <Progress value={pct} className="h-2" />
-                    <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
-                      <span>{currency(g.current)}</span><span>{currency(g.target)}</span>
-                    </div>
+                    <span className="text-xs font-semibold text-muted-foreground">{pct}%</span>
                   </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-        </div>
+                  <Progress value={pct} className="h-2" />
+                  <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
+                    <span>{currency(Number(g.current))}</span><span>{currency(Number(g.target))}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Budget + Bar chart */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="rounded-3xl border-border/70 shadow-soft xl:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-base">Orçamento vs. realizado</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">Comparativo por categoria em julho</p>
+              <p className="mt-1 text-xs text-muted-foreground">Comparativo por categoria em {monthName}</p>
             </div>
             <Button asChild size="sm" variant="ghost" className="rounded-xl text-primary"><Link to="/orcamento">Ver orçamento</Link></Button>
           </CardHeader>
           <CardContent>
-            <div className="h-[260px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={budgets.map((b) => ({ name: b.category, Orçado: b.limit, Gasto: b.spent }))} margin={{ top: 10, right: 8, left: -12, bottom: 0 }}>
-                  <CartesianGrid vertical={false} stroke="hsl(215 20% 92%)" />
-                  <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#64748B" }} />
-                  <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#64748B" }} tickFormatter={(v) => `${v / 1000}k`} />
-                  <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid #E2E8F0" }} formatter={(v: number) => currency(v)} />
-                  <Bar dataKey="Orçado" fill="#E2E8F0" radius={[8, 8, 0, 0]} />
-                  <Bar dataKey="Gasto" fill="#2563EB" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {budgetChart.length === 0 ? (
+              <div className="py-10 text-center text-sm text-muted-foreground">
+                Sem orçamento para este mês.{" "}
+                <Link to="/orcamento" className="font-semibold text-primary">Criar orçamento</Link>
+              </div>
+            ) : (
+              <div className="h-[260px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={budgetChart} margin={{ top: 10, right: 8, left: -12, bottom: 0 }}>
+                    <CartesianGrid vertical={false} stroke="hsl(215 20% 92%)" />
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#64748B" }} />
+                    <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#64748B" }} tickFormatter={(v) => `${v / 1000}k`} />
+                    <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid #E2E8F0" }} formatter={(v: number) => currency(v)} />
+                    <Bar dataKey="Orçado" fill="#E2E8F0" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="Gasto" fill="#2563EB" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -331,22 +441,22 @@ function Dashboard() {
             <p className="mt-1 text-xs text-muted-foreground">Próximos vencimentos</p>
           </CardHeader>
           <CardContent className="space-y-3">
-            {[
-              { d: "22", m: "Jul", label: "Fatura Itaú Click", amount: 2340, tone: "text-destructive" },
-              { d: "28", m: "Jul", label: "Aluguel", amount: 2400, tone: "text-destructive" },
-              { d: "05", m: "Ago", label: "Salário", amount: 8500, tone: "text-success" },
-              { d: "10", m: "Ago", label: "Fatura Inter", amount: 980, tone: "text-destructive" },
-            ].map((e, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-2xl border border-border/70 p-3">
+            {upcoming.length === 0 ? (
+              <div className="py-4 text-center text-sm text-muted-foreground">
+                <Calendar className="mx-auto mb-2 h-6 w-6" />
+                Sem vencimentos próximos.
+              </div>
+            ) : upcoming.map((e) => (
+              <div key={e.id} className="flex items-center gap-3 rounded-2xl border border-border/70 p-3">
                 <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-secondary text-center">
                   <div>
-                    <div className="text-base font-bold leading-none text-foreground">{e.d}</div>
-                    <div className="text-[10px] uppercase text-muted-foreground">{e.m}</div>
+                    <div className="text-base font-bold leading-none text-foreground">{String(e.date.getDate()).padStart(2, "0")}</div>
+                    <div className="text-[10px] uppercase text-muted-foreground">{MONTH_LABELS[e.date.getMonth()]}</div>
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold text-foreground">{e.label}</div>
-                  <div className="text-[11px] text-muted-foreground">Próximo vencimento</div>
+                  <div className="text-[11px] text-muted-foreground">Vence {e.date.toLocaleDateString("pt-BR")}</div>
                 </div>
                 <div className={`text-sm font-bold ${e.tone}`}>{currency(e.amount)}</div>
               </div>
@@ -354,6 +464,9 @@ function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* silence unused imports on empty states */}
+      <div className="hidden"><Avatar><AvatarFallback>·</AvatarFallback></Avatar></div>
     </div>
   );
 }
