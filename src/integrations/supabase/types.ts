@@ -50,6 +50,56 @@ export type Database = {
         }
         Relationships: []
       }
+      budgets: {
+        Row: {
+          amount_limit: number
+          category_id: string | null
+          category_name: string
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          month: number
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          amount_limit?: number
+          category_id?: string | null
+          category_name: string
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          month?: number
+          updated_at?: string
+          user_id: string
+          year?: number
+        }
+        Update: {
+          amount_limit?: number
+          category_id?: string | null
+          category_name?: string
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          month?: number
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cards: {
         Row: {
           brand: string
@@ -120,6 +170,42 @@ export type Database = {
           id?: string
           name?: string
           type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      goals: {
+        Row: {
+          color: string
+          created_at: string
+          current: number
+          deadline: string | null
+          id: string
+          name: string
+          target: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          current?: number
+          deadline?: string | null
+          id?: string
+          name: string
+          target?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          current?: number
+          deadline?: string | null
+          id?: string
+          name?: string
+          target?: number
           updated_at?: string
           user_id?: string
         }
