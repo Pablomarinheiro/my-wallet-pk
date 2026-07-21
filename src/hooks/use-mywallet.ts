@@ -8,8 +8,10 @@ export type AccountRow = Tables<"accounts">;
 export type CardRow = Tables<"cards">;
 export type CategoryRow = Tables<"categories">;
 export type TransactionRow = Tables<"transactions">;
+export type GoalRow = Tables<"goals">;
+export type BudgetRow = Tables<"budgets">;
 
-type TableName = "accounts" | "cards" | "categories" | "transactions";
+type TableName = "accounts" | "cards" | "categories" | "transactions" | "goals" | "budgets";
 
 function useRealtime(table: TableName, userId: string | undefined) {
   const qc = useQueryClient();
