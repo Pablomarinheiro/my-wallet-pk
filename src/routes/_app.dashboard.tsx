@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   ArrowUpRight, ArrowDownRight, Plus, Wallet, PiggyBank, CreditCard,
-  Target, Loader2, Calendar,
+  Target, Loader2, Calendar, ChevronLeft, ChevronRight, Filter, X,
 } from "lucide-react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
@@ -20,6 +23,7 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   useAccounts, useBudgets, useCards, useCategories, useGoals, useTransactions,
 } from "@/hooks/use-mywallet";
+
 
 export const Route = createFileRoute("/_app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — My Wallet" }] }),
