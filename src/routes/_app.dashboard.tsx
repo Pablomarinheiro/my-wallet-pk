@@ -77,6 +77,34 @@ function Dashboard() {
   const thisMonth = now.getMonth();
   const thisYear = now.getFullYear();
 
+  const filteredTx = useMemo(() => {
+    const start = (() => {
+      if (fPeriod === "month") return new Date(thisYear, thisMonth, 1);
+      if (fPeriod === "year") return new Date(thisYear, 0, 1);
+      if (fPeriod === "all") return null;
+      const days = Number(fPeriod);
+      const d = new Date(now);
+      d.setDate(d.getDate() - days);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    })();
+    return transactions.filter((t) => {
+      const d = new Date(`${t.date}T00:00:00`);
+      if (start && d < start) return false;
+      if (fAccount !== "all" && t.account_id !== fAccount) return false;
+      if (fCategory !== "all" && t.category_id !== fCategory) return false;
+      if (fType !== "all" && t.type !== fType) return false;
+      return true;
+    });
+  }, [transactions, fPeriod, fAccount, fCategory, fType, thisMonth, thisYear, now]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredTx.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageTx = filteredTx.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const filtersActive = fPeriod !== "30" || fAccount !== "all" || fCategory !== "all" || fType !== "all";
+  const clearFilters = () => { setFPeriod("30"); setFAccount("all"); setFCategory("all"); setFType("all"); };
+
+
   const monthTx = useMemo(
     () => transactions.filter((t) => {
       const d = new Date(t.date);
