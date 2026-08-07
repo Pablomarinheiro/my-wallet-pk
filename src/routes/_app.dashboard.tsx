@@ -62,6 +62,17 @@ function Dashboard() {
   const { data: goals = [] } = useGoals();
   const { data: budgets = [] } = useBudgets();
 
+  // ---- filtros + paginação da lista de transações ----
+  const [fPeriod, setFPeriod] = useState("30");
+  const [fAccount, setFAccount] = useState("all");
+  const [fCategory, setFCategory] = useState("all");
+  const [fType, setFType] = useState("all");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 6;
+
+  useEffect(() => { setPage(1); }, [fPeriod, fAccount, fCategory, fType]);
+
+
   const now = new Date();
   const thisMonth = now.getMonth();
   const thisYear = now.getFullYear();
