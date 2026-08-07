@@ -192,7 +192,10 @@ export function useUpsertTransaction() {
         : await supabase.from("transactions").insert(row);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions", user?.id] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions", user?.id] });
+      qc.invalidateQueries({ queryKey: ["accounts", user?.id] });
+    },
   });
 }
 export function useDeleteTransaction() {
@@ -203,9 +206,13 @@ export function useDeleteTransaction() {
       const { error } = await supabase.from("transactions").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions", user?.id] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions", user?.id] });
+      qc.invalidateQueries({ queryKey: ["accounts", user?.id] });
+    },
   });
 }
+
 
 // ---------- GOALS ----------
 export function useGoals() {

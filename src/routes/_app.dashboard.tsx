@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   ArrowUpRight, ArrowDownRight, Plus, Wallet, PiggyBank, CreditCard,
-  Target, Loader2, Calendar,
+  Target, Loader2, Calendar, ChevronLeft, ChevronRight, Filter, X,
 } from "lucide-react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
@@ -20,6 +23,7 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   useAccounts, useBudgets, useCards, useCategories, useGoals, useTransactions,
 } from "@/hooks/use-mywallet";
+
 
 export const Route = createFileRoute("/_app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — My Wallet" }] }),
@@ -58,9 +62,48 @@ function Dashboard() {
   const { data: goals = [] } = useGoals();
   const { data: budgets = [] } = useBudgets();
 
+  // ---- filtros + paginação da lista de transações ----
+  const [fPeriod, setFPeriod] = useState("30");
+  const [fAccount, setFAccount] = useState("all");
+  const [fCategory, setFCategory] = useState("all");
+  const [fType, setFType] = useState("all");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 6;
+
+  useEffect(() => { setPage(1); }, [fPeriod, fAccount, fCategory, fType]);
+
+
   const now = new Date();
   const thisMonth = now.getMonth();
   const thisYear = now.getFullYear();
+
+  const filteredTx = useMemo(() => {
+    const start = (() => {
+      if (fPeriod === "month") return new Date(thisYear, thisMonth, 1);
+      if (fPeriod === "year") return new Date(thisYear, 0, 1);
+      if (fPeriod === "all") return null;
+      const days = Number(fPeriod);
+      const d = new Date(now);
+      d.setDate(d.getDate() - days);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    })();
+    return transactions.filter((t) => {
+      const d = new Date(`${t.date}T00:00:00`);
+      if (start && d < start) return false;
+      if (fAccount !== "all" && t.account_id !== fAccount) return false;
+      if (fCategory !== "all" && t.category_id !== fCategory) return false;
+      if (fType !== "all" && t.type !== fType) return false;
+      return true;
+    });
+  }, [transactions, fPeriod, fAccount, fCategory, fType, thisMonth, thisYear, now]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredTx.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageTx = filteredTx.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const filtersActive = fPeriod !== "30" || fAccount !== "all" || fCategory !== "all" || fType !== "all";
+  const clearFilters = () => { setFPeriod("30"); setFAccount("all"); setFCategory("all"); setFType("all"); };
+
 
   const monthTx = useMemo(
     () => transactions.filter((t) => {
@@ -330,42 +373,111 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="rounded-3xl border-border/70 shadow-soft xl:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-base">Últimas transações</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">Movimentações recentes</p>
+          <CardHeader className="space-y-3 pb-2">
+            <div className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base">Últimas transações</CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {filteredTx.length} resultado(s) · página {currentPage} de {totalPages}
+                </p>
+              </div>
+              <Button asChild size="sm" variant="ghost" className="rounded-xl text-primary"><Link to="/despesas">Ver todas</Link></Button>
             </div>
-            <Button asChild size="sm" variant="ghost" className="rounded-xl text-primary"><Link to="/despesas">Ver todas</Link></Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                <Filter className="h-3.5 w-3.5" /> Filtros
+              </span>
+              <Select value={fPeriod} onValueChange={setFPeriod}>
+                <SelectTrigger className="h-9 w-[140px] rounded-xl text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="7">Últimos 7 dias</SelectItem>
+                  <SelectItem value="30">Últimos 30 dias</SelectItem>
+                  <SelectItem value="90">Últimos 90 dias</SelectItem>
+                  <SelectItem value="month">Mês atual</SelectItem>
+                  <SelectItem value="year">Ano atual</SelectItem>
+                  <SelectItem value="all">Todo o período</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={fAccount} onValueChange={setFAccount}>
+                <SelectTrigger className="h-9 w-[150px] rounded-xl text-xs"><SelectValue placeholder="Conta" /></SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="all">Todas as contas</SelectItem>
+                  {accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={fCategory} onValueChange={setFCategory}>
+                <SelectTrigger className="h-9 w-[160px] rounded-xl text-xs"><SelectValue placeholder="Categoria" /></SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="all">Todas as categorias</SelectItem>
+                  {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={fType} onValueChange={setFType}>
+                <SelectTrigger className="h-9 w-[130px] rounded-xl text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  <SelectItem value="income">Receitas</SelectItem>
+                  <SelectItem value="expense">Despesas</SelectItem>
+                  <SelectItem value="transfer">Transferências</SelectItem>
+                </SelectContent>
+              </Select>
+              {filtersActive && (
+                <Button size="sm" variant="ghost" className="h-9 rounded-xl text-xs text-muted-foreground" onClick={clearFilters}>
+                  <X className="h-3.5 w-3.5" /> Limpar
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="pt-0">
-            {transactions.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">Nenhuma transação ainda.</div>
-            ) : (
-              <div className="divide-y divide-border/70">
-                {transactions.slice(0, 6).map((t) => {
-                  const Icon = getIcon(t.category?.icon);
-                  const catColor = t.category?.color ?? "#64748B";
-                  return (
-                    <div key={t.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-3">
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-white" style={{ background: catColor }}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-foreground">{t.description}</div>
-                        <div className="truncate text-[11px] text-muted-foreground">{t.category?.name ?? "—"} · {t.account?.name ?? "—"} · {shortDate(t.date)}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`text-sm font-bold ${t.type === "income" ? "text-success" : "text-foreground"}`}>
-                          {t.type === "income" ? "+" : "−"} {currency(Number(t.amount))}
-                        </div>
-                        {t.status === "pending" && <Badge variant="secondary" className="mt-0.5 rounded-full bg-warning/15 px-1.5 py-0 text-[10px] text-warning">Pendente</Badge>}
-                      </div>
-                    </div>
-                  );
-                })}
+            {filteredTx.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                {transactions.length === 0 ? "Nenhuma transação ainda." : "Nenhuma transação para os filtros selecionados."}
               </div>
+            ) : (
+              <>
+                <div className="divide-y divide-border/70">
+                  {pageTx.map((t) => {
+                    const Icon = getIcon(t.category?.icon);
+                    const catColor = t.category?.color ?? "#64748B";
+                    return (
+                      <div key={t.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-3">
+                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-white" style={{ background: catColor }}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold text-foreground">{t.description}</div>
+                          <div className="truncate text-[11px] text-muted-foreground">{t.category?.name ?? "—"} · {t.account?.name ?? "—"} · {shortDate(t.date)}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm font-bold ${t.type === "income" ? "text-success" : "text-foreground"}`}>
+                            {t.type === "income" ? "+" : "−"} {currency(Number(t.amount))}
+                          </div>
+                          {t.status === "pending" && <Badge variant="secondary" className="mt-0.5 rounded-full bg-warning/15 px-1.5 py-0 text-[10px] text-warning">Pendente</Badge>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t border-border/70 pt-3">
+                  <span className="text-[11px] text-muted-foreground">
+                    Exibindo {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredTx.length)} de {filteredTx.length}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <Button size="icon" variant="outline" className="h-8 w-8 rounded-xl"
+                      disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)} aria-label="Página anterior">
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="min-w-[54px] text-center text-xs font-semibold text-foreground">{currentPage} / {totalPages}</span>
+                    <Button size="icon" variant="outline" className="h-8 w-8 rounded-xl"
+                      disabled={currentPage >= totalPages} onClick={() => setPage(currentPage + 1)} aria-label="Próxima página">
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
             )}
           </CardContent>
+
         </Card>
 
         <Card className="rounded-3xl border-border/70 shadow-soft">
