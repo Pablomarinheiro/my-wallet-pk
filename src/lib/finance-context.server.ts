@@ -16,8 +16,8 @@ export async function buildFinanceContext(supabase: Client) {
   const sinceIso = since.toISOString().slice(0, 10);
 
   const [accounts, cards, categories, transactions, goals, budgets] = await Promise.all([
-    supabase.from("accounts").select("id,name,type,balance,currency"),
-    supabase.from("cards").select("name,brand,limit_amount,current_invoice,closing_day,due_day"),
+    supabase.from("accounts").select("id,name,type,balance,bank"),
+    supabase.from("cards").select("name,brand,limit,used,closing_day,due_day"),
     supabase.from("categories").select("id,name,type"),
     supabase
       .from("transactions")
@@ -25,8 +25,8 @@ export async function buildFinanceContext(supabase: Client) {
       .gte("date", sinceIso)
       .order("date", { ascending: false })
       .limit(600),
-    supabase.from("goals").select("name,target_amount,current_amount,deadline"),
-    supabase.from("budgets").select("category_id,amount,month,year"),
+    supabase.from("goals").select("name,target,current,deadline"),
+    supabase.from("budgets").select("category_name,amount_limit,month,year"),
   ]);
 
   const catById = new Map((categories.data ?? []).map((c) => [c.id, c.name]));
@@ -63,7 +63,7 @@ export async function buildFinanceContext(supabase: Client) {
     lines.push("\nCARTÕES:");
     for (const c of cards.data ?? [])
       lines.push(
-        `- ${c.name} (${c.brand ?? "-"}): fatura ${brl(Number(c.current_invoice ?? 0))} de limite ${brl(Number(c.limit_amount ?? 0))}, fecha dia ${c.closing_day ?? "-"}, vence dia ${c.due_day ?? "-"}`,
+        `- ${c.name} (${c.brand ?? "-"}): fatura ${brl(Number(c.used ?? 0))} de limite ${brl(Number(c.limit ?? 0))}, fecha dia ${c.closing_day ?? "-"}, vence dia ${c.due_day ?? "-"}`,
       );
   }
 
@@ -81,7 +81,7 @@ export async function buildFinanceContext(supabase: Client) {
     lines.push("\nMETAS:");
     for (const g of goals.data ?? [])
       lines.push(
-        `- ${g.name}: ${brl(Number(g.current_amount ?? 0))} de ${brl(Number(g.target_amount ?? 0))}${g.deadline ? ` (prazo ${g.deadline})` : ""}`,
+        `- ${g.name}: ${brl(Number(g.current ?? 0))} de ${brl(Number(g.target ?? 0))}${g.deadline ? ` (prazo ${g.deadline})` : ""}`,
       );
   }
 
@@ -89,7 +89,7 @@ export async function buildFinanceContext(supabase: Client) {
     lines.push("\nORÇAMENTOS:");
     for (const b of budgets.data ?? [])
       lines.push(
-        `- ${catById.get(b.category_id ?? "") ?? "Geral"} ${String(b.month).padStart(2, "0")}/${b.year}: ${brl(Number(b.amount ?? 0))}`,
+        `- ${b.category_name ?? "Geral"} ${String(b.month).padStart(2, "0")}/${b.year}: ${brl(Number(b.amount_limit ?? 0))}`,
       );
   }
 
