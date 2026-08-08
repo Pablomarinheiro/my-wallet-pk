@@ -21,6 +21,9 @@ import { currency, shortDate } from "@/lib/mock-data";
 import { useAccounts, useCategories, useTransactions } from "@/hooks/use-mywallet";
 import { exportCSV, exportExcel, exportPDF, type ExportRow } from "@/lib/exports";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CsvImport } from "@/components/csv-import";
+
 
 export const Route = createFileRoute("/_app/relatorios")({
   head: () => ({ meta: [{ title: "Relatórios — My Wallet" }] }),
