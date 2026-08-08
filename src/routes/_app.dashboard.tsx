@@ -215,6 +215,10 @@ function Dashboard() {
         <KpiCard label="Economia" value={currency(savings)} icon={PiggyBank} tint="bg-warning/15 text-warning" hint="Receitas − Despesas" />
       </div>
 
+      <AiInsightsCard />
+
+
+
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="rounded-3xl border-border/70 shadow-soft xl:col-span-2">
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
