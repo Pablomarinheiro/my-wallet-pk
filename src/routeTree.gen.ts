@@ -25,6 +25,7 @@ import { Route as AppContasRouteImport } from './routes/_app.contas'
 import { Route as AppConfiguracoesRouteImport } from './routes/_app.configuracoes'
 import { Route as AppCategoriasRouteImport } from './routes/_app.categorias'
 import { Route as AppCartoesRouteImport } from './routes/_app.cartoes'
+import { Route as AppAssistenteRouteImport } from './routes/_app.assistente'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -105,11 +106,17 @@ const AppCartoesRoute = AppCartoesRouteImport.update({
   path: '/cartoes',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAssistenteRoute = AppAssistenteRouteImport.update({
+  id: '/assistente',
+  path: '/assistente',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
+  '/assistente': typeof AppAssistenteRoute
   '/cartoes': typeof AppCartoesRoute
   '/categorias': typeof AppCategoriasRoute
   '/configuracoes': typeof AppConfiguracoesRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
+  '/assistente': typeof AppAssistenteRoute
   '/cartoes': typeof AppCartoesRoute
   '/categorias': typeof AppCategoriasRoute
   '/configuracoes': typeof AppConfiguracoesRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
+  '/_app/assistente': typeof AppAssistenteRoute
   '/_app/cartoes': typeof AppCartoesRoute
   '/_app/categorias': typeof AppCategoriasRoute
   '/_app/configuracoes': typeof AppConfiguracoesRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cadastro'
     | '/login'
+    | '/assistente'
     | '/cartoes'
     | '/categorias'
     | '/configuracoes'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cadastro'
     | '/login'
+    | '/assistente'
     | '/cartoes'
     | '/categorias'
     | '/configuracoes'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/cadastro'
     | '/login'
+    | '/_app/assistente'
     | '/_app/cartoes'
     | '/_app/categorias'
     | '/_app/configuracoes'
@@ -335,10 +347,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCartoesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/assistente': {
+      id: '/_app/assistente'
+      path: '/assistente'
+      fullPath: '/assistente'
+      preLoaderRoute: typeof AppAssistenteRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAssistenteRoute: typeof AppAssistenteRoute
   AppCartoesRoute: typeof AppCartoesRoute
   AppCategoriasRoute: typeof AppCategoriasRoute
   AppConfiguracoesRoute: typeof AppConfiguracoesRoute
@@ -354,6 +374,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAssistenteRoute: AppAssistenteRoute,
   AppCartoesRoute: AppCartoesRoute,
   AppCategoriasRoute: AppCategoriasRoute,
   AppConfiguracoesRoute: AppConfiguracoesRoute,
@@ -379,13 +400,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

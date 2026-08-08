@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/app-shell";
+import { AiInsightsCard } from "@/components/ai-insights";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -214,6 +216,10 @@ function Dashboard() {
         <KpiCard label="Despesas do mês" value={currency(expense)} icon={ArrowDownRight} tint="bg-destructive/12 text-destructive" hint={`${monthTx.filter((t) => t.type === "expense").length} saída(s)`} />
         <KpiCard label="Economia" value={currency(savings)} icon={PiggyBank} tint="bg-warning/15 text-warning" hint="Receitas − Despesas" />
       </div>
+
+      <AiInsightsCard />
+
+
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="rounded-3xl border-border/70 shadow-soft xl:col-span-2">
