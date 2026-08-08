@@ -315,6 +315,9 @@ function RelatoriosPage() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
     </div>
+
   );
 }
