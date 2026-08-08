@@ -2,7 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Wallet, CreditCard, ArrowDownCircle, ArrowUpCircle,
   ArrowLeftRight, Tags, Target, PiggyBank, FileBarChart, User, Settings,
-  Search, Bell, Menu, LogOut, ChevronRight, Plus,
+  Search, Bell, Menu, LogOut, ChevronRight, Plus, Sparkles,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ const nav = [
   { to: "/metas", label: "Metas", icon: Target },
   { to: "/orcamento", label: "Orçamento", icon: PiggyBank },
   { to: "/relatorios", label: "Relatórios", icon: FileBarChart },
+  { to: "/assistente", label: "Assistente IA", icon: Sparkles },
 ] as const;
 
 const bottomNav = [
@@ -113,7 +114,7 @@ function Breadcrumbs({ pathname }: { pathname: string }) {
     dashboard: "Dashboard", contas: "Contas", cartoes: "Cartões",
     receitas: "Receitas", despesas: "Despesas", transferencias: "Transferências",
     categorias: "Categorias", metas: "Metas", orcamento: "Orçamento",
-    relatorios: "Relatórios", perfil: "Perfil", configuracoes: "Configurações",
+    relatorios: "Relatórios", assistente: "Assistente IA", perfil: "Perfil", configuracoes: "Configurações",
   };
   return (
     <nav className="hidden items-center gap-1.5 text-sm md:flex">
