@@ -131,11 +131,23 @@ function RelatoriosPage() {
     <div className="space-y-6">
       <PageHeader
         title="Relatórios"
-        description="Analise seu histórico financeiro e exporte para PDF, Excel ou CSV."
+        description="Analise seu histórico financeiro, exporte para PDF, Excel ou CSV e importe dados."
       />
 
+      <Tabs defaultValue="relatorios" className="space-y-6">
+        <TabsList className="rounded-2xl">
+          <TabsTrigger value="relatorios" className="rounded-xl">Relatórios</TabsTrigger>
+          <TabsTrigger value="importar" className="rounded-xl">Importar CSV</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="importar" className="space-y-6">
+          <CsvImport />
+        </TabsContent>
+
+        <TabsContent value="relatorios" className="space-y-6">
       <Card className="rounded-3xl border-border/70 shadow-soft">
         <CardContent className="grid grid-cols-1 gap-3 p-5 md:grid-cols-6">
+
           <div className="space-y-1.5"><Label>Período</Label>
             <Select value={preset} onValueChange={applyPreset}>
               <SelectTrigger className="h-10 rounded-2xl"><SelectValue /></SelectTrigger>
