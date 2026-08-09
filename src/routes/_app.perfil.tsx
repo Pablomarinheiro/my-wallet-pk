@@ -33,13 +33,8 @@ function initials(name: string, email: string) {
 }
 
 function PerfilPage() {
-  const { user } = useAuth();
+  const { user, displayName: identityName, avatarUrl: identityAvatar, isOAuthIdentity } = useAuth();
   const email = user?.email ?? "";
-  const metaName =
-    (user?.user_metadata?.full_name as string) ||
-    (user?.user_metadata?.name as string) ||
-    "";
-  const metaAvatar = (user?.user_metadata?.avatar_url as string) || "";
 
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -50,36 +45,51 @@ function PerfilPage() {
   const [savingPwd, setSavingPwd] = useState(false);
 
   useEffect(() => {
+    // Sempre parte da identidade autenticada; nunca reaproveita estado de outro usuário.
+    setFullName(identityName);
+    setAvatarUrl(identityAvatar);
+    setLoaded(false);
     if (!user) return;
     let active = true;
+    const currentId = user.id;
     supabase
       .from("profiles")
-      .select("full_name, avatar_url")
-      .eq("id", user.id)
+      .select("id, full_name, avatar_url")
+      .eq("id", currentId)
       .maybeSingle()
       .then(({ data }) => {
         if (!active) return;
-        setFullName(data?.full_name || metaName || email.split("@")[0]);
-        setAvatarUrl(data?.avatar_url || metaAvatar);
+        // Descarta qualquer linha que não pertença ao usuário logado.
+        const row = data && data.id === currentId ? data : null;
+        setFullName(row?.full_name || identityName);
+        setAvatarUrl(isOAuthIdentity ? identityAvatar || row?.avatar_url || "" : row?.avatar_url || identityAvatar);
         setLoaded(true);
       });
     return () => {
       active = false;
     };
-  }, [user?.id]);
+  }, [user?.id, identityName, identityAvatar, isOAuthIdentity]);
+
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
+    // Revalida a sessão no servidor antes de gravar (evita gravar no perfil de outro usuário).
+    const { data: fresh } = await supabase.auth.getUser();
+    if (fresh.user?.id !== user.id) {
+      setSaving(false);
+      return toast.error("Sessão expirada. Entre novamente.");
+    }
     const { error } = await supabase
       .from("profiles")
-      .upsert({ id: user.id, full_name: fullName, avatar_url: avatarUrl || null });
+      .upsert({ id: fresh.user.id, full_name: fullName, avatar_url: avatarUrl || null });
     if (!error) await supabase.auth.updateUser({ data: { full_name: fullName } });
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Perfil atualizado");
   }
+
 
   async function savePassword(e: React.FormEvent) {
     e.preventDefault();
