@@ -75,14 +75,21 @@ function PerfilPage() {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
+    // Revalida a sessão no servidor antes de gravar (evita gravar no perfil de outro usuário).
+    const { data: fresh } = await supabase.auth.getUser();
+    if (fresh.user?.id !== user.id) {
+      setSaving(false);
+      return toast.error("Sessão expirada. Entre novamente.");
+    }
     const { error } = await supabase
       .from("profiles")
-      .upsert({ id: user.id, full_name: fullName, avatar_url: avatarUrl || null });
+      .upsert({ id: fresh.user.id, full_name: fullName, avatar_url: avatarUrl || null });
     if (!error) await supabase.auth.updateUser({ data: { full_name: fullName } });
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Perfil atualizado");
   }
+
 
   async function savePassword(e: React.FormEvent) {
     e.preventDefault();
