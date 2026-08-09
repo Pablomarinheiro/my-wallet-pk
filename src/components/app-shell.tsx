@@ -135,10 +135,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { user, signOut } = useAuth();
+  const { user, signOut, displayName: identityName } = useAuth();
   const navigate = useNavigate();
-  const displayName = (user?.user_metadata?.full_name as string | undefined) ?? user?.email?.split("@")[0] ?? "Usuário";
+  const displayName = identityName || user?.email?.split("@")[0] || "Usuário";
   const initials = displayName.split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
+
   const handleSignOut = async () => {
     await signOut();
     navigate({ to: "/login", replace: true });
