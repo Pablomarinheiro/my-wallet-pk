@@ -18,8 +18,9 @@ import { UploadCloud, FileSpreadsheet, Loader2, Download, X } from "lucide-react
 import { toast } from "sonner";
 import { currency } from "@/lib/mock-data";
 import {
-  guessColumn, normalizeName, parseAmount, parseCsv, parseDate, parseType,
+  guessColumn, inferColumns, normalizeName, parseAmount, parseCsv, parseDate, parseType,
 } from "@/lib/csv-import";
+
 
 type Mapping = { date: string; description: string; amount: string; type: string; category: string; account: string };
 
