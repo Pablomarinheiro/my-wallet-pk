@@ -206,7 +206,7 @@ function Dashboard() {
         title={`Olá, ${firstName} 👋`}
         description="Aqui está o resumo das suas finanças este mês."
         actions={
-          <Button asChild className="rounded-2xl shadow-soft"><Link to="/despesas"><Plus className="h-4 w-4" /> Nova transação</Link></Button>
+          <NewTransactionMenu />
         }
       />
 
