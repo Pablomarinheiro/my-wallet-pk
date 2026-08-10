@@ -26,19 +26,59 @@ export function parseCsv(text: string): ParsedCsv {
 
   const nonEmpty = rows.filter((r) => r.some((c) => c.trim() !== ""));
   if (nonEmpty.length === 0) return { headers: [], rows: [] };
-  const headers = (nonEmpty[0] ?? []).map((h) => h.trim());
-  return { headers, rows: nonEmpty.slice(1).map((r) => headers.map((_, i) => (r[i] ?? "").trim())) };
+
+  // Some exports start with title/blank rows; use the widest row in the first
+  // 15 as the header line so mapping works on real bank/spreadsheet files.
+  let headerIdx = 0;
+  let best = -1;
+  for (let i = 0; i < Math.min(15, nonEmpty.length); i++) {
+    const count = (nonEmpty[i] ?? []).filter((c) => c.trim() !== "").length;
+    if (count > best) { best = count; headerIdx = i; }
+  }
+
+  const headerRow = nonEmpty[headerIdx] ?? [];
+  const width = Math.max(...nonEmpty.map((r) => r.length));
+  const headers = Array.from({ length: width }, (_, i) => (headerRow[i] ?? "").trim());
+  const body = nonEmpty.slice(headerIdx + 1).map((r) => headers.map((_, i) => (r[i] ?? "").trim()));
+  return { headers, rows: body };
 }
 
 function pickDelimiter(text: string) {
-  const line = text.split("\n")[0] ?? "";
-  const counts: Record<string, number> = {
-    ";": (line.match(/;/g) ?? []).length,
-    ",": (line.match(/,/g) ?? []).length,
-    "\t": (line.match(/\t/g) ?? []).length,
-  };
+  const lines = text.split("\n").filter((l) => l.trim() !== "").slice(0, 15);
+  const counts: Record<string, number> = { ";": 0, ",": 0, "\t": 0 };
+  for (const line of lines) {
+    counts[";"]! += (line.match(/;/g) ?? []).length;
+    counts[","]! += (line.match(/,/g) ?? []).length;
+    counts["\t"]! += (line.match(/\t/g) ?? []).length;
+  }
   return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ";";
 }
+
+/** Infers column roles by looking at the actual values when headers don't match. */
+export function inferColumns(rows: string[][], width: number) {
+  const sample = rows.slice(0, 60);
+  const score = { date: -1, amount: -1, description: -1 };
+  const idx = { date: "none", amount: "none", description: "none" };
+  for (let c = 0; c < width; c++) {
+    let dates = 0, amounts = 0, texts = 0;
+    for (const r of sample) {
+      const v = (r[c] ?? "").trim();
+      if (!v) continue;
+      if (parseDate(v)) dates++;
+      else if (parseAmount(v) !== null && /\d/.test(v)) amounts++;
+      if (/[a-zA-ZÀ-ú]{3,}/.test(v)) texts++;
+    }
+    if (dates > score.date) { score.date = dates; idx.date = String(c); }
+    if (amounts > score.amount) { score.amount = amounts; idx.amount = String(c); }
+    if (texts > score.description) { score.description = texts; idx.description = String(c); }
+  }
+  return {
+    date: score.date > 0 ? idx.date : "none",
+    amount: score.amount > 0 ? idx.amount : "none",
+    description: score.description > 0 ? idx.description : "none",
+  };
+}
+
 
 /** Detects common column names (pt-BR and en) and returns the header index. */
 export function guessColumn(headers: string[], candidates: string[]) {
