@@ -36,7 +36,39 @@ const bottomNav = [
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
+export function NewTransactionMenu({ className }: { className?: string }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" className={cn("rounded-2xl shadow-soft", className)}>
+          <Plus className="h-4 w-4" /> Nova transação
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-52 rounded-2xl">
+        <DropdownMenuLabel>Escolha o tipo</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/receitas" className="cursor-pointer gap-2">
+            <ArrowUpCircle className="h-4 w-4 text-success" /> Receita
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/despesas" className="cursor-pointer gap-2">
+            <ArrowDownCircle className="h-4 w-4 text-destructive" /> Despesa
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/transferencias" className="cursor-pointer gap-2">
+            <ArrowLeftRight className="h-4 w-4 text-primary" /> Transferência
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function Logo({ collapsed = false }: { collapsed?: boolean }) {
+
   return (
     <Link to="/dashboard" className="flex items-center gap-2.5">
       <div className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
