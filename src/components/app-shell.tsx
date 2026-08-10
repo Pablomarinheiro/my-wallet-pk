@@ -79,11 +79,7 @@ function SidebarInner({ collapsed, pathname }: { collapsed: boolean; pathname: s
         <Logo collapsed={collapsed} />
       </div>
 
-      {!collapsed && (
-        <Button size="sm" className="rounded-2xl shadow-soft">
-          <Plus className="h-4 w-4" /> Nova transação
-        </Button>
-      )}
+      {!collapsed && <NewTransactionMenu className="w-full" />}
 
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
         {!collapsed && <div className="px-2 pt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Menu</div>}
@@ -96,14 +92,6 @@ function SidebarInner({ collapsed, pathname }: { collapsed: boolean; pathname: s
         ))}
       </nav>
 
-      {!collapsed && (
-        <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-4">
-          <div className="text-xs font-semibold text-primary">Plano Free</div>
-          <div className="mt-1 text-[13px] font-medium text-foreground">Faça upgrade para Pro</div>
-          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Relatórios avançados, contas ilimitadas e mais.</p>
-          <Button size="sm" className="mt-3 w-full rounded-xl">Fazer upgrade</Button>
-        </div>
-      )}
     </div>
   );
 }
