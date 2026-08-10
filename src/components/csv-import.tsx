@@ -18,8 +18,9 @@ import { UploadCloud, FileSpreadsheet, Loader2, Download, X } from "lucide-react
 import { toast } from "sonner";
 import { currency } from "@/lib/mock-data";
 import {
-  guessColumn, normalizeName, parseAmount, parseCsv, parseDate, parseType,
+  guessColumn, inferColumns, normalizeName, parseAmount, parseCsv, parseDate, parseType,
 } from "@/lib/csv-import";
+
 
 type Mapping = { date: string; description: string; amount: string; type: string; category: string; account: string };
 
@@ -46,26 +47,42 @@ export function CsvImport() {
   const [importing, setImporting] = useState(false);
   const [dragging, setDragging] = useState(false);
 
+  function loadText(name: string, text: string) {
+    const { headers: h, rows: r } = parseCsv(text);
+    if (h.length === 0 || r.length === 0) { toast.error("Arquivo CSV vazio ou inválido"); return; }
+    setFileName(name);
+    setHeaders(h);
+    setRows(r);
+    const guessed = {
+      date: guessColumn(h, ["data", "date", "data da compra", "data lançamento", "dt", "vencimento", "competencia"]),
+      description: guessColumn(h, ["descrição", "description", "histórico", "historico", "lançamento", "lancamento", "titulo", "título", "detalhe", "memo", "estabelecimento"]),
+      amount: guessColumn(h, ["valor", "amount", "value", "montante", "total", "r$", "credito", "debito"]),
+      type: guessColumn(h, ["tipo", "type", "natureza", "operacao", "operação", "entrada/saida"]),
+      category: guessColumn(h, ["categoria", "category", "classificacao", "classificação", "grupo"]),
+      account: guessColumn(h, ["conta", "account", "banco", "carteira", "cartao", "cartão"]),
+    };
+    const inferred = inferColumns(r, h.length);
+    setMap({
+      ...guessed,
+      date: guessed.date !== NONE ? guessed.date : inferred.date,
+      amount: guessed.amount !== NONE ? guessed.amount : inferred.amount,
+      description: guessed.description !== NONE ? guessed.description : inferred.description,
+    });
+    toast.success(`${r.length} linha(s) carregada(s)`);
+  }
+
   function readFile(file: File) {
     const reader = new FileReader();
     reader.onload = () => {
-      const { headers: h, rows: r } = parseCsv(String(reader.result ?? ""));
-      if (h.length === 0 || r.length === 0) { toast.error("Arquivo CSV vazio ou inválido"); return; }
-      setFileName(file.name);
-      setHeaders(h);
-      setRows(r);
-      setMap({
-        date: guessColumn(h, ["data", "date", "data da compra", "data lançamento"]),
-        description: guessColumn(h, ["descrição", "description", "histórico", "lançamento", "titulo"]),
-        amount: guessColumn(h, ["valor", "amount", "value", "montante"]),
-        type: guessColumn(h, ["tipo", "type", "natureza"]),
-        category: guessColumn(h, ["categoria", "category"]),
-        account: guessColumn(h, ["conta", "account", "banco"]),
-      });
-      toast.success(`${r.length} linha(s) carregada(s)`);
+      const buf = reader.result as ArrayBuffer;
+      let text = new TextDecoder("utf-8").decode(buf);
+      // Fallback for files exported as latin-1 (accents come back as "\uFFFD")
+      if (text.includes("\uFFFD")) text = new TextDecoder("windows-1252").decode(buf);
+      loadText(file.name, text);
     };
-    reader.readAsText(file, "utf-8");
+    reader.readAsArrayBuffer(file);
   }
+
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];

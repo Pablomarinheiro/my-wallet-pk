@@ -307,7 +307,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      apply_tx_balance: {
+        Args: {
+          _account_id: string
+          _amount: number
+          _sign: number
+          _status: string
+          _transfer_account_id: string
+          _type: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
