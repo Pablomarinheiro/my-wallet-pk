@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -6,13 +7,44 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Sun, Moon, Monitor, Globe, DollarSign, Bell, Shield, DatabaseBackup } from "lucide-react";
+import { Sun, Moon, Monitor, Globe, Bell, DatabaseBackup } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_app/configuracoes")({
-  head: () => ({ meta: [{ title: "Configurações — My Wallet" }] }),
+  head: () => ({
+    meta: [
+      { title: "Configurações — My Wallet" },
+      { name: "description", content: "Personalize aparência, idioma e notificações do My Wallet." },
+    ],
+  }),
   component: ConfigPage,
 });
+
+type Theme = "light" | "dark" | "system";
+const PREF_KEY = "mywallet:prefs";
+
+type Prefs = {
+  theme: Theme;
+  language: string;
+  currency: string;
+  dateFormat: string;
+  weekly: boolean;
+  dueAlerts: boolean;
+  budgetAlerts: boolean;
+  news: boolean;
+};
+
+const DEFAULTS: Prefs = {
+  theme: "system", language: "pt", currency: "brl", dateFormat: "dmy",
+  weekly: true, dueAlerts: true, budgetAlerts: true, news: false,
+};
+
+function applyTheme(theme: Theme) {
+  if (typeof document === "undefined") return;
+  const dark = theme === "dark"
+    || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.classList.toggle("dark", dark);
+}
 
 function Section({ icon: Icon, title, children }: any) {
   return (
@@ -39,17 +71,51 @@ function Row({ label, hint, children }: any) {
 }
 
 function ConfigPage() {
+  const [prefs, setPrefs] = useState<Prefs>(DEFAULTS);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PREF_KEY);
+      const next = raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS;
+      setPrefs(next);
+      applyTheme(next.theme);
+    } catch {
+      applyTheme(DEFAULTS.theme);
+    }
+  }, []);
+
+  function update<K extends keyof Prefs>(key: K, value: Prefs[K]) {
+    setPrefs((p) => {
+      const next = { ...p, [key]: value };
+      try { localStorage.setItem(PREF_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      if (key === "theme") applyTheme(value as Theme);
+      return next;
+    });
+  }
+
+  const themes: { value: Theme; icon: any; label: string }[] = [
+    { value: "light", icon: Sun, label: "Claro" },
+    { value: "dark", icon: Moon, label: "Escuro" },
+    { value: "system", icon: Monitor, label: "Sistema" },
+  ];
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Configurações" description="Personalize a aparência, idioma e segurança da sua conta." />
+      <PageHeader title="Configurações" description="Personalize a aparência, idioma e notificações da sua conta." />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Section icon={Sun} title="Aparência">
           <div>
             <Label className="mb-2 block">Tema</Label>
             <div className="grid grid-cols-3 gap-2">
-              {[{ icon: Sun, label: "Claro", active: true }, { icon: Moon, label: "Escuro" }, { icon: Monitor, label: "Sistema" }].map((t) => (
-                <button key={t.label} className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-xs transition-colors ${t.active ? "border-primary bg-primary/5 text-primary" : "border-border hover:bg-secondary"}`}>
+              {themes.map((t) => (
+                <button
+                  key={t.value}
+                  onClick={() => update("theme", t.value)}
+                  className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-xs transition-colors ${
+                    prefs.theme === t.value ? "border-primary bg-primary/5 text-primary" : "border-border hover:bg-secondary"
+                  }`}
+                >
                   <t.icon className="h-4 w-4" /> {t.label}
                 </button>
               ))}
@@ -59,43 +125,47 @@ function ConfigPage() {
 
         <Section icon={Globe} title="Idioma e região">
           <Row label="Idioma">
-            <Select defaultValue="pt"><SelectTrigger className="w-40 rounded-2xl"><SelectValue /></SelectTrigger>
+            <Select value={prefs.language} onValueChange={(v) => update("language", v)}>
+              <SelectTrigger className="w-40 rounded-2xl"><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="pt">Português</SelectItem><SelectItem value="en">English</SelectItem><SelectItem value="es">Español</SelectItem></SelectContent>
             </Select>
           </Row>
           <Row label="Moeda">
-            <Select defaultValue="brl"><SelectTrigger className="w-40 rounded-2xl"><SelectValue /></SelectTrigger>
+            <Select value={prefs.currency} onValueChange={(v) => update("currency", v)}>
+              <SelectTrigger className="w-40 rounded-2xl"><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="brl">BRL (R$)</SelectItem><SelectItem value="usd">USD ($)</SelectItem><SelectItem value="eur">EUR (€)</SelectItem></SelectContent>
             </Select>
           </Row>
           <Row label="Formato de data">
-            <Select defaultValue="dmy"><SelectTrigger className="w-40 rounded-2xl"><SelectValue /></SelectTrigger>
+            <Select value={prefs.dateFormat} onValueChange={(v) => update("dateFormat", v)}>
+              <SelectTrigger className="w-40 rounded-2xl"><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="dmy">DD/MM/AAAA</SelectItem><SelectItem value="mdy">MM/DD/AAAA</SelectItem></SelectContent>
             </Select>
           </Row>
         </Section>
 
         <Section icon={Bell} title="Notificações">
-          <Row label="Emails de resumo semanal" hint="Receba um panorama toda segunda"><Switch defaultChecked /></Row>
-          <Row label="Alertas de vencimento" hint="3 dias antes do vencimento de faturas"><Switch defaultChecked /></Row>
-          <Row label="Estouro de orçamento" hint="Aviso quando ultrapassar 80%"><Switch defaultChecked /></Row>
-          <Row label="Novidades e dicas"><Switch /></Row>
+          <Row label="Emails de resumo semanal" hint="Receba um panorama toda segunda">
+            <Switch checked={prefs.weekly} onCheckedChange={(v) => update("weekly", v)} />
+          </Row>
+          <Row label="Alertas de vencimento" hint="3 dias antes do vencimento de faturas">
+            <Switch checked={prefs.dueAlerts} onCheckedChange={(v) => update("dueAlerts", v)} />
+          </Row>
+          <Row label="Estouro de orçamento" hint="Aviso quando ultrapassar 80%">
+            <Switch checked={prefs.budgetAlerts} onCheckedChange={(v) => update("budgetAlerts", v)} />
+          </Row>
+          <Row label="Novidades e dicas">
+            <Switch checked={prefs.news} onCheckedChange={(v) => update("news", v)} />
+          </Row>
         </Section>
 
-        <Section icon={Shield} title="Segurança">
-          <Row label="Autenticação em 2 fatores" hint="Adicione uma camada extra"><Switch /></Row>
-          <Row label="Sessões ativas" hint="Gerencie dispositivos conectados"><Button variant="outline" className="rounded-2xl">Ver</Button></Row>
-          <Row label="Excluir conta" hint="Ação permanente"><Button variant="outline" className="rounded-2xl text-destructive hover:text-destructive">Excluir</Button></Row>
-        </Section>
-
-        <Section icon={DatabaseBackup} title="Backup e dados">
-          <Row label="Backup automático" hint="Diariamente às 03:00"><Switch defaultChecked /></Row>
-          <Row label="Exportar dados"><Button variant="outline" className="rounded-2xl">Baixar</Button></Row>
-          <Row label="Importar OFX"><Button variant="outline" className="rounded-2xl">Enviar arquivo</Button></Row>
-        </Section>
-
-        <Section icon={DollarSign} title="Plano e cobrança">
-          <Row label="Plano atual" hint="Free — até 3 contas"><Button className="rounded-2xl">Fazer upgrade</Button></Row>
+        <Section icon={DatabaseBackup} title="Dados">
+          <Row label="Exportar dados" hint="PDF, Excel ou CSV com filtros">
+            <Button asChild variant="outline" className="rounded-2xl"><Link to="/relatorios">Abrir relatórios</Link></Button>
+          </Row>
+          <Row label="Importar CSV" hint="Traga o histórico de outro app ou do banco">
+            <Button asChild variant="outline" className="rounded-2xl"><Link to="/relatorios">Importar</Link></Button>
+          </Row>
         </Section>
       </div>
     </div>
