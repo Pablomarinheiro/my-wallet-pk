@@ -171,7 +171,9 @@ export function useTransactions(kind?: "income" | "expense" | "transfer") {
     queryFn: async () => {
       let q = supabase
         .from("transactions")
-        .select("*, category:categories(id,name,icon,color), account:accounts(id,name,color)")
+        .select(
+          "*, category:categories(id,name,icon,color), account:accounts!transactions_account_id_fkey(id,name,color)",
+        )
         .order("date", { ascending: false });
       if (kind) q = q.eq("type", kind);
       const { data, error } = await q;
