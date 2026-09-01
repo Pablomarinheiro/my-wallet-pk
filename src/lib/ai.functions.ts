@@ -23,18 +23,23 @@ export const askFinanceAssistant = createServerFn({ method: "POST" })
       "./finance-context.server"
     );
 
-    const finance = await buildFinanceContext(context.supabase);
-    const provider = createAiProvider();
+    try {
+      const finance = await buildFinanceContext(context.supabase);
+      const provider = createAiProvider();
 
-    const result = streamText({
-      model: provider.responses(AI_MODEL),
-      system: `${ASSISTANT_SYSTEM_PROMPT}\n\n=== DADOS FINANCEIROS DO USUÁRIO ===\n${finance}`,
-      messages: data.messages,
-      providerOptions: AI_PROVIDER_OPTIONS as never,
-    });
+      const result = streamText({
+        model: provider.responses(AI_MODEL),
+        system: `${ASSISTANT_SYSTEM_PROMPT}\n\n=== DADOS FINANCEIROS DO USUÁRIO ===\n${finance}`,
+        messages: data.messages,
+        providerOptions: AI_PROVIDER_OPTIONS as never,
+      });
 
-    const text = await result.text;
-    return { text: text?.trim() || "Não consegui gerar uma resposta agora. Tente novamente." };
+      const text = await result.text;
+      return { text: text?.trim() || "Não consegui gerar uma resposta agora. Tente novamente." };
+    } catch (error) {
+      console.error("[askFinanceAssistant] failed:", error);
+      return { text: "Não consegui gerar uma resposta agora. Tente novamente em instantes." };
+    }
   });
 
 export const generateFinanceInsights = createServerFn({ method: "POST" })
@@ -46,22 +51,27 @@ export const generateFinanceInsights = createServerFn({ method: "POST" })
       "./finance-context.server"
     );
 
-    const finance = await buildFinanceContext(context.supabase);
-    const provider = createAiProvider();
+    try {
+      const finance = await buildFinanceContext(context.supabase);
+      const provider = createAiProvider();
 
-    const result = streamText({
-      model: provider.responses(AI_MODEL),
-      system: ASSISTANT_SYSTEM_PROMPT,
-      prompt: `Com base nos dados abaixo, escreva de 3 a 5 insights curtos sobre a saúde financeira do usuário.
+      const result = streamText({
+        model: provider.responses(AI_MODEL),
+        system: ASSISTANT_SYSTEM_PROMPT,
+        prompt: `Com base nos dados abaixo, escreva de 3 a 5 insights curtos sobre a saúde financeira do usuário.
 Cada insight deve ser um item de lista em markdown, começando por um rótulo em negrito (ex: **Alerta:**, **Tendência:**, **Oportunidade:**), com no máximo 2 frases e sempre citando números reais.
 Priorize: variações relevantes de gasto por categoria, risco de saldo negativo antes do fim do mês, progresso das metas e estouro de orçamento.
 Não escreva introdução nem conclusão, apenas a lista.
 
 === DADOS FINANCEIROS ===
 ${finance}`,
-      providerOptions: AI_PROVIDER_OPTIONS as never,
-    });
+        providerOptions: AI_PROVIDER_OPTIONS as never,
+      });
 
-    const text = await result.text;
-    return { text: text?.trim() || "" };
+      const text = await result.text;
+      return { text: text?.trim() || "" };
+    } catch (error) {
+      console.error("[generateFinanceInsights] failed:", error);
+      return { text: "" };
+    }
   });
