@@ -20,7 +20,14 @@ async function getServerEntry(): Promise<ServerEntry> {
 
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
-async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
+async function normalizeCatastrophicSsrResponse(
+  response: Response,
+  request: Request,
+): Promise<Response> {
+  // Never rewrite responses to internal server-function calls (e.g. /_serverFn/...):
+  // callers expect JSON/streamed data back, not an HTML error page. Rewriting these
+  // breaks client-side parsing and can crash unrelated parts of the already-rendered UI.
+  if (new URL(request.url).pathname.includes("/_serverFn/")) return response;
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) return response;
@@ -49,7 +56,7 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return await normalizeCatastrophicSsrResponse(response, request);
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
