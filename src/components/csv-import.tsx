@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { UploadCloud, FileSpreadsheet, Loader2, Download, X } from "lucide-react";
 import { toast } from "sonner";
-import { currency } from "@/lib/mock-data";
+import { currency } from "@/lib/format";
 import {
   guessColumn, inferColumns, normalizeName, parseAmount, parseCsv, parseDate, parseType,
 } from "@/lib/csv-import";

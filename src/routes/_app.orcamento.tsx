@@ -14,7 +14,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Loader2, PiggyBank } from "lucide-react";
-import { currency } from "@/lib/mock-data";
+import { currency } from "@/lib/format";
 import { getIcon } from "@/lib/icons";
 import {
   useBudgets, useCategories, useTransactions, useUpsertBudget, useDeleteBudget,

@@ -10,7 +10,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Target, Calendar, Pencil, Trash2, Loader2 } from "lucide-react";
-import { currency } from "@/lib/mock-data";
+import { currency } from "@/lib/format";
 import { COLOR_OPTIONS } from "@/lib/icons";
 import {
   useGoals, useUpsertGoal, useDeleteGoal, type GoalRow,

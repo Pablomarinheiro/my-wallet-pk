@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
-import { currency } from "@/lib/mock-data";
+import { currency } from "@/lib/format";
 import { COLOR_OPTIONS } from "@/lib/icons";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,

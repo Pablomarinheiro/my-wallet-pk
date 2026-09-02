@@ -17,7 +17,7 @@ import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
   Line, LineChart, Legend,
 } from "recharts";
-import { currency, shortDate } from "@/lib/mock-data";
+import { currency, shortDate } from "@/lib/format";
 import { useAccounts, useCategories, useTransactions } from "@/hooks/use-mywallet";
 import { exportCSV, exportExcel, exportPDF, type ExportRow } from "@/lib/exports";
 import { toast } from "sonner";

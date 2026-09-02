@@ -8,7 +8,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Search, Plus, Pencil, Trash2, Wallet, Loader2 } from "lucide-react";
-import { currency, shortDate, type TxType } from "@/lib/mock-data";
+import { currency, shortDate, type TxType } from "@/lib/format";
 import { getIcon } from "@/lib/icons";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
