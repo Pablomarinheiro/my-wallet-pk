@@ -181,3 +181,30 @@ export function parseType(raw: string, amount: number): "income" | "expense" {
   if (["despesa", "expense", "saida", "debito", "d", "-", "gasto", "pagamento"].includes(t)) return "expense";
   return amount >= 0 ? "income" : "expense";
 }
+
+/** Keyword rules used to suggest a category (and type) from the description. */
+export const CATEGORY_RULES: { name: string; type: "income" | "expense"; keywords: string[] }[] = [
+  { name: "Salário", type: "income", keywords: ["salario", "holerite", "pagamento salario", "folha", "provento", "13o", "decimo terceiro"] },
+  { name: "Rendimentos", type: "income", keywords: ["rendimento", "juros", "dividendo", "cdb", "tesouro", "resgate", "cashback", "estorno"] },
+  { name: "Freelance", type: "income", keywords: ["freela", "freelance", "servico prestado", "nota fiscal", "pix recebido"] },
+  { name: "Mercado", type: "expense", keywords: ["mercado", "supermercado", "atacad", "hortifruti", "padaria", "acougue", "assai", "carrefour", "pao de acucar", "big", "extra"] },
+  { name: "Alimentação", type: "expense", keywords: ["ifood", "restaurante", "lanche", "burger", "pizza", "cafe", "bar ", "delivery", "rappi", "mcdonald", "subway"] },
+  { name: "Transporte", type: "expense", keywords: ["uber", "99", "taxi", "combustivel", "posto", "gasolina", "etanol", "estacionamento", "pedagio", "metro", "onibus", "bilhete"] },
+  { name: "Moradia", type: "expense", keywords: ["aluguel", "condominio", "iptu", "agua", "luz", "energia", "gas", "enel", "sabesp", "copasa", "cemig"] },
+  { name: "Internet e telefone", type: "expense", keywords: ["internet", "vivo", "claro", "tim", "oi ", "net ", "telefone", "celular", "banda larga"] },
+  { name: "Saúde", type: "expense", keywords: ["farmacia", "drogaria", "medico", "consulta", "exame", "hospital", "plano de saude", "unimed", "dentista", "psico"] },
+  { name: "Educação", type: "expense", keywords: ["escola", "faculdade", "curso", "mensalidade", "livro", "udemy", "alura"] },
+  { name: "Lazer", type: "expense", keywords: ["netflix", "spotify", "cinema", "prime", "disney", "hbo", "max", "youtube", "steam", "viagem", "hotel", "airbnb"] },
+  { name: "Compras", type: "expense", keywords: ["amazon", "mercado livre", "shopee", "aliexpress", "magalu", "americanas", "shopping", "loja", "renner", "zara"] },
+  { name: "Serviços financeiros", type: "expense", keywords: ["tarifa", "anuidade", "juros", "iof", "taxa", "seguro", "emprestimo", "financiamento", "fatura"] },
+];
+
+/** Suggests a category name and type from a free-text description. */
+export function suggestCategory(description: string): { name: string; type: "income" | "expense" } | null {
+  const d = normalizeName(description);
+  if (!d) return null;
+  for (const rule of CATEGORY_RULES) {
+    if (rule.keywords.some((k) => d.includes(k))) return { name: rule.name, type: rule.type };
+  }
+  return null;
+}
