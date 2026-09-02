@@ -310,6 +310,7 @@ export function CsvImport() {
                       <TableHead>Conta</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead className="text-right">Valor</TableHead>
+                      <TableHead>Erro</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -330,8 +331,10 @@ export function CsvImport() {
                         <TableCell className="text-right font-bold">
                           {p.amount === null ? <span className="text-destructive">inválido</span> : currency(p.amount)}
                         </TableCell>
+                        <TableCell className="text-xs text-destructive">{p.errors.join(", ")}</TableCell>
                       </TableRow>
                     ))}
+
                   </TableBody>
                 </Table>
                 {parsed.length > 20 && (
