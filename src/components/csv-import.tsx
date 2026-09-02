@@ -105,29 +105,61 @@ export function CsvImport() {
   const parsed = useMemo(() => {
     if (rows.length === 0) return [];
     const idx = (k: keyof Mapping) => (map[k] === NONE ? -1 : Number(map[k]));
+    const fallbackAccountId =
+      defaultAccount !== NONE ? defaultAccount : smartFill && accounts.length === 1 ? accounts[0]!.id : null;
+    let lastDate: string | null = null;
+
     return rows.map((r, i) => {
       const cell = (k: keyof Mapping) => (idx(k) >= 0 ? (r[idx(k)] ?? "") : "");
+      const suggestions: string[] = [];
+      const errors: string[] = [];
+
       const rawAmount = cell("amount");
       const amount = parseAmount(rawAmount);
-      const date = parseDate(cell("date"));
+
+      let date = parseDate(cell("date"));
+      if (date) lastDate = date;
+      else if (smartFill) {
+        date = lastDate ?? new Date().toISOString().slice(0, 10);
+        suggestions.push("data estimada");
+      }
+
       const description = cell("description") || "Importado";
-      const type = parseType(cell("type"), amount ?? 0);
-      const catName = cell("category");
+      const rawType = cell("type");
+      const hint = smartFill ? suggestCategory(description) : null;
+      let type = parseType(rawType, amount ?? 0);
+      if (!rawType && hint && (amount ?? 0) >= 0) {
+        // Sign alone is ambiguous when the file has no type column
+        if (hint.type !== type) suggestions.push("tipo sugerido");
+        type = hint.type;
+      }
+
+      let catName = cell("category");
+      if (!catName && hint) { catName = hint.name; suggestions.push("categoria sugerida"); }
+
       const accName = cell("account");
-      const accountId = accName ? accountByName.get(normalizeName(accName)) ?? null : null;
-      const errors: string[] = [];
-      if (amount === null || amount === 0) errors.push("valor inválido");
+      let accountId = accName ? accountByName.get(normalizeName(accName)) ?? null : null;
+      if (!accountId && fallbackAccountId) {
+        accountId = fallbackAccountId;
+        if (accName || defaultAccount === NONE) suggestions.push("conta sugerida");
+      }
+
+      if (amount === null || amount === 0) errors.push("valor inválido ou zerado");
       if (!date) errors.push("data inválida");
+      if (!accountId) suggestions.push("sem conta");
+
       return {
         line: i + 2,
         date, description, amount: amount === null ? null : Math.abs(amount),
-        type, catName, accName, accountId, errors,
+        type, catName, accName, accountId, errors, suggestions,
       };
     });
-  }, [rows, map, accountByName]);
+  }, [rows, map, accountByName, accounts, defaultAccount, smartFill]);
 
   const valid = parsed.filter((p) => p.errors.length === 0);
   const invalid = parsed.length - valid.length;
+  const suggestedCount = valid.filter((p) => p.suggestions.some((s) => s !== "sem conta")).length;
+
 
   async function runImport() {
     if (!user) { toast.error("Não autenticado"); return; }
