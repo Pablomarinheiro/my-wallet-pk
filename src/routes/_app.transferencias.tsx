@@ -9,7 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeftRight, ArrowRight, Loader2, Trash2 } from "lucide-react";
-import { currency, shortDate } from "@/lib/mock-data";
+import { currency, shortDate } from "@/lib/format";
 import { toast } from "sonner";
 import {
   useAccounts, useDeleteTransaction, useTransactions, useUpsertTransaction,

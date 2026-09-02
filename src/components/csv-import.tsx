@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { UploadCloud, FileSpreadsheet, Loader2, Download, X } from "lucide-react";
 import { toast } from "sonner";
-import { currency } from "@/lib/mock-data";
+import { currency } from "@/lib/format";
 import {
   guessColumn, inferColumns, normalizeName, parseAmount, parseCsv, parseDate, parseType,
 } from "@/lib/csv-import";
@@ -299,7 +299,14 @@ export function CsvImport() {
               </Button>
             </CardHeader>
             <CardContent>
+              {valid.length === 0 && (
+                <div className="mb-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-3 text-xs text-muted-foreground">
+                  Nenhuma linha válida. Confira em "Mapear colunas" se <b>Data</b> e <b>Valor</b> apontam para as colunas certas
+                  do seu arquivo — a coluna de data precisa ter datas (ex.: 05/08/2026) e a de valor, números (ex.: -450,90).
+                </div>
+              )}
               <div className="overflow-x-auto">
+
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -310,6 +317,7 @@ export function CsvImport() {
                       <TableHead>Conta</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead className="text-right">Valor</TableHead>
+                      <TableHead>Erro</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -330,8 +338,10 @@ export function CsvImport() {
                         <TableCell className="text-right font-bold">
                           {p.amount === null ? <span className="text-destructive">inválido</span> : currency(p.amount)}
                         </TableCell>
+                        <TableCell className="text-xs text-destructive">{p.errors.join(", ")}</TableCell>
                       </TableRow>
                     ))}
+
                   </TableBody>
                 </Table>
                 {parsed.length > 20 && (

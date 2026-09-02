@@ -19,7 +19,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
   Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { currency, shortDate } from "@/lib/mock-data";
+import { currency, shortDate } from "@/lib/format";
 import { getIcon } from "@/lib/icons";
 import { useAuth } from "@/hooks/use-auth";
 import {

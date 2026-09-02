@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, Plus, TrendingUp, Building2, Banknote, Pencil, Trash2, Loader2 } from "lucide-react";
-import { currency } from "@/lib/mock-data";
+import { currency } from "@/lib/format";
 import { COLOR_OPTIONS } from "@/lib/icons";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
