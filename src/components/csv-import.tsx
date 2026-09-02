@@ -299,7 +299,14 @@ export function CsvImport() {
               </Button>
             </CardHeader>
             <CardContent>
+              {valid.length === 0 && (
+                <div className="mb-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-3 text-xs text-muted-foreground">
+                  Nenhuma linha válida. Confira em "Mapear colunas" se <b>Data</b> e <b>Valor</b> apontam para as colunas certas
+                  do seu arquivo — a coluna de data precisa ter datas (ex.: 05/08/2026) e a de valor, números (ex.: -450,90).
+                </div>
+              )}
               <div className="overflow-x-auto">
+
                 <Table>
                   <TableHeader>
                     <TableRow>
