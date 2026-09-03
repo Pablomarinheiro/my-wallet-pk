@@ -76,13 +76,13 @@ function ConfigPage() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(PREF_KEY);
-      const next = raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS;
+      if (!raw) return; // nunca muda o tema sozinho ao abrir Configurações
+      const next = { ...DEFAULTS, ...JSON.parse(raw) };
       setPrefs(next);
       applyTheme(next.theme);
-    } catch {
-      applyTheme(DEFAULTS.theme);
-    }
+    } catch { /* mantém o tema atual */ }
   }, []);
+
 
   function update<K extends keyof Prefs>(key: K, value: Prefs[K]) {
     setPrefs((p) => {
