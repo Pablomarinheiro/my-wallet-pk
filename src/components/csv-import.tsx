@@ -18,7 +18,7 @@ import { UploadCloud, FileSpreadsheet, Loader2, Download, X } from "lucide-react
 import { toast } from "sonner";
 import { currency } from "@/lib/format";
 import {
-  guessColumn, inferColumns, normalizeName, parseAmount, parseCsv, parseDate, parseType,
+  guessColumn, inferColumns, normalizeName, parseAmount, parseCsv, parseDate, parseType, suggestCategory,
 } from "@/lib/csv-import";
 
 
@@ -44,6 +44,7 @@ export function CsvImport() {
   const [map, setMap] = useState<Mapping>({ date: NONE, description: NONE, amount: NONE, type: NONE, category: NONE, account: NONE });
   const [defaultAccount, setDefaultAccount] = useState<string>(NONE);
   const [createCategories, setCreateCategories] = useState(true);
+  const [smartFill, setSmartFill] = useState(true);
   const [importing, setImporting] = useState(false);
   const [dragging, setDragging] = useState(false);
 
@@ -317,6 +318,15 @@ export function CsvImport() {
                 </div>
                 <Switch checked={createCategories} onCheckedChange={setCreateCategories} />
               </div>
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 p-3 md:col-span-3">
+                <div>
+                  <div className="text-sm font-medium">Sugestões automáticas</div>
+                  <div className="text-xs text-muted-foreground">
+                    Infere categoria e tipo pela descrição, usa a conta padrão (ou a única conta) e completa datas ausentes
+                  </div>
+                </div>
+                <Switch checked={smartFill} onCheckedChange={setSmartFill} />
+              </div>
             </CardContent>
           </Card>
 
@@ -324,6 +334,7 @@ export function CsvImport() {
             <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <CardTitle className="text-base">
                 Prévia — {valid.length} válida(s){invalid > 0 ? ` · ${invalid} com erro` : ""}
+                {suggestedCount > 0 ? ` · ${suggestedCount} com sugestão` : ""}
               </CardTitle>
               <Button className="rounded-2xl" onClick={runImport} disabled={importing || valid.length === 0}>
                 {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
@@ -349,6 +360,7 @@ export function CsvImport() {
                       <TableHead>Conta</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead className="text-right">Valor</TableHead>
+                      <TableHead>Sugestões</TableHead>
                       <TableHead>Erro</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -360,7 +372,7 @@ export function CsvImport() {
                         <TableCell className="font-medium">{p.description}</TableCell>
                         <TableCell className="text-muted-foreground">{p.catName || "—"}</TableCell>
                         <TableCell className="text-muted-foreground">
-                          {p.accName || (defaultAccount !== NONE ? accounts.find((a) => a.id === defaultAccount)?.name : "—")}
+                          {accounts.find((a) => a.id === p.accountId)?.name ?? p.accName ?? "—"}
                         </TableCell>
                         <TableCell>
                           {p.type === "income"
@@ -369,6 +381,11 @@ export function CsvImport() {
                         </TableCell>
                         <TableCell className="text-right font-bold">
                           {p.amount === null ? <span className="text-destructive">inválido</span> : currency(p.amount)}
+                        </TableCell>
+                        <TableCell className="space-x-1">
+                          {p.suggestions.map((s) => (
+                            <Badge key={s} variant="secondary" className="rounded-full text-[10px] font-normal">{s}</Badge>
+                          ))}
                         </TableCell>
                         <TableCell className="text-xs text-destructive">{p.errors.join(", ")}</TableCell>
                       </TableRow>
