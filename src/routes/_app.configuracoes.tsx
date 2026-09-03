@@ -35,7 +35,7 @@ type Prefs = {
 };
 
 const DEFAULTS: Prefs = {
-  theme: "system", language: "pt", currency: "brl", dateFormat: "dmy",
+  theme: "light", language: "pt", currency: "brl", dateFormat: "dmy",
   weekly: true, dueAlerts: true, budgetAlerts: true, news: false,
 };
 
