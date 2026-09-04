@@ -24,6 +24,7 @@ import { getIcon } from "@/lib/icons";
 import { useAuth } from "@/hooks/use-auth";
 import {
   useAccounts, useBudgets, useCards, useCategories, useGoals, useTransactions,
+  useCardInstallments, usePortfolioTotals,
 } from "@/hooks/use-mywallet";
 
 
@@ -117,7 +118,9 @@ function Dashboard() {
 
   const income = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
   const expense = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
-  const balance = accounts.reduce((s, a) => s + Number(a.balance), 0);
+  const liquidAccounts = accounts.filter((a) => a.type !== "investment");
+  const balance = liquidAccounts.reduce((s, a) => s + Number(a.balance), 0);
+  const portfolio = usePortfolioTotals();
   const savings = income - expense;
 
   const cashflow = useMemo(() => {
@@ -167,6 +170,34 @@ function Dashboard() {
       }));
   }, [budgets, monthTx, thisMonth, thisYear]);
 
+  const invoiceByCard = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const inst of installments) {
+      const d = new Date(`${inst.due_date}T00:00:00`);
+      if (d.getMonth() !== thisMonth || d.getFullYear() !== thisYear) continue;
+      m.set(inst.card_id, (m.get(inst.card_id) ?? 0) + Number(inst.amount));
+    }
+    return m;
+  }, [installments, thisMonth, thisYear]);
+
+  const budgetAlerts = useMemo(() => {
+    const spentByCat = new Map<string, number>();
+    for (const t of monthTx) {
+      if (t.type !== "expense" || !t.category_id) continue;
+      spentByCat.set(t.category_id, (spentByCat.get(t.category_id) ?? 0) + Number(t.amount));
+    }
+    return budgets
+      .filter((b) => b.month === thisMonth + 1 && b.year === thisYear)
+      .map((b) => {
+        const limit = Number(b.amount_limit);
+        const spent = b.category_id ? (spentByCat.get(b.category_id) ?? 0) : 0;
+        const pct = limit > 0 ? (spent / limit) * 100 : 0;
+        return { id: b.id, name: b.category_name, limit, spent, pct };
+      })
+      .filter((b) => b.pct >= 80)
+      .sort((a, b) => b.pct - a.pct);
+  }, [budgets, monthTx, thisMonth, thisYear]);
+
   const upcoming = useMemo(() => {
     const today = new Date(thisYear, thisMonth, now.getDate());
     const items: Array<{ id: string; date: Date; label: string; amount: number; tone: string }> = [];
@@ -185,11 +216,11 @@ function Dashboard() {
       if (due < today) due.setMonth(due.getMonth() + 1);
       items.push({
         id: `card-${c.id}`, date: due, label: `Fatura ${c.name}`,
-        amount: Number(c.used), tone: "text-destructive",
+        amount: invoiceByCard.get(c.id) ?? 0, tone: "text-destructive",
       });
     }
     return items.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 5);
-  }, [transactions, cards, thisMonth, thisYear, now]);
+  }, [transactions, cards, thisMonth, thisYear, now, invoiceByCard]);
 
   const firstName = (user?.user_metadata?.full_name ?? user?.email ?? "").toString().split(" ")[0] || "usuário";
   const mainCard = cards[0];
@@ -210,12 +241,39 @@ function Dashboard() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Saldo total" value={currency(balance)} icon={Wallet} tint="bg-primary/10 text-primary" hint={`${accounts.length} conta(s)`} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <KpiCard label="Saldo disponível" value={currency(balance)} icon={Wallet} tint="bg-primary/10 text-primary" hint={`${liquidAccounts.length} conta(s) pessoal(is)`} />
+        <KpiCard label="Patrimônio investido" value={currency(portfolio.current)} icon={LineChart} tint="bg-primary/10 text-primary" hint={`${portfolio.percent.toFixed(1)}% de rentabilidade`} />
         <KpiCard label="Receitas do mês" value={currency(income)} icon={ArrowUpRight} tint="bg-success/12 text-success" hint={`${monthTx.filter((t) => t.type === "income").length} entrada(s)`} />
         <KpiCard label="Despesas do mês" value={currency(expense)} icon={ArrowDownRight} tint="bg-destructive/12 text-destructive" hint={`${monthTx.filter((t) => t.type === "expense").length} saída(s)`} />
         <KpiCard label="Economia" value={currency(savings)} icon={PiggyBank} tint="bg-warning/15 text-warning" hint="Receitas − Despesas" />
       </div>
+
+      {budgetAlerts.length > 0 && (
+        <Card className="rounded-3xl border-warning/40 bg-warning/5 shadow-soft">
+          <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <CardTitle className="text-base">Alertas de orçamento</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {budgetAlerts.map((b) => (
+              <div key={b.id} className="flex flex-wrap items-center gap-3 rounded-2xl bg-card p-3">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold">{b.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {currency(b.spent)} de {currency(b.limit)}
+                  </div>
+                </div>
+                <Badge className={b.pct >= 100
+                  ? "rounded-full bg-destructive/12 text-destructive hover:bg-destructive/12"
+                  : "rounded-full bg-warning/15 text-warning hover:bg-warning/15"}>
+                  {b.pct >= 100 ? "Limite estourado" : "80% atingido"} · {Math.round(b.pct)}%
+                </Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <AiInsightsCard />
 
