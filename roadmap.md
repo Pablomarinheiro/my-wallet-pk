@@ -21,3 +21,9 @@
 - Compra parcelada recalcula fatura
 - Aporte de investimento atualiza rentabilidade
 - Estouro de orçamento exibe alerta no dashboard
+
+## Acesso restrito (temporário)
+- Tabelas `app_settings` (singleton, `access_restricted` default true) e `allowed_emails`
+- Allowlist: pkdemoapp@gmail.com, pabloeduraimundo@gmail.com
+- Checagem no backend (função no banco + RLS), aplicada no login e-mail/senha, Google e cadastro
+- Liberar acesso no futuro = mudar `access_restricted` para false no banco, sem alterar código
