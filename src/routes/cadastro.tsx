@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
+import { ACCESS_RESTRICTED_MESSAGE, ensureAccessAllowed } from "@/lib/access";
 
 export const Route = createFileRoute("/cadastro")({
   head: () => ({ meta: [{ title: "Criar conta — My Wallet" }] }),
@@ -39,8 +40,10 @@ function RegisterPage() {
         data: { full_name: name },
       },
     });
+    if (error) { setLoading(false); toast.error(error.message); return; }
+    const allowed = await ensureAccessAllowed();
     setLoading(false);
-    if (error) { toast.error(error.message); return; }
+    if (!allowed) { toast.error(ACCESS_RESTRICTED_MESSAGE); return; }
     toast.success("Conta criada! Você já pode acessar.");
     navigate({ to: "/dashboard", replace: true });
   }
@@ -48,7 +51,10 @@ function RegisterPage() {
   async function onGoogle() {
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (result.error) { toast.error("Falha ao entrar com Google"); return; }
-    if (!result.redirected) navigate({ to: "/dashboard", replace: true });
+    if (result.redirected) return;
+    const allowed = await ensureAccessAllowed();
+    if (!allowed) { toast.error(ACCESS_RESTRICTED_MESSAGE); return; }
+    navigate({ to: "/dashboard", replace: true });
   }
 
   return (

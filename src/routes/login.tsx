@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
+import { ACCESS_RESTRICTED_MESSAGE, ensureAccessAllowed } from "@/lib/access";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Entrar — My Wallet" }] }),
@@ -32,11 +33,14 @@ function LoginPage() {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast.error(error.message === "Invalid login credentials" ? "E-mail ou senha inválidos" : error.message);
       return;
     }
+    const allowed = await ensureAccessAllowed();
+    setLoading(false);
+    if (!allowed) { toast.error(ACCESS_RESTRICTED_MESSAGE); return; }
     navigate({ to: "/dashboard", replace: true });
   }
 
@@ -49,6 +53,9 @@ function LoginPage() {
       return;
     }
     if (result.redirected) return;
+    const allowed = await ensureAccessAllowed();
+    setLoading(false);
+    if (!allowed) { toast.error(ACCESS_RESTRICTED_MESSAGE); return; }
     navigate({ to: "/dashboard", replace: true });
   }
 

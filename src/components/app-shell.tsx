@@ -2,7 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Wallet, CreditCard, ArrowDownCircle, ArrowUpCircle,
   ArrowLeftRight, Tags, Target, PiggyBank, FileBarChart, User, Settings,
-  Search, Bell, Menu, LogOut, ChevronRight, Plus, Sparkles,
+  Search, Bell, Menu, LogOut, ChevronRight, Plus, Sparkles, LineChart,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,7 @@ const nav = [
   { to: "/transferencias", label: "Transferências", icon: ArrowLeftRight },
   { to: "/categorias", label: "Categorias", icon: Tags },
   { to: "/metas", label: "Metas", icon: Target },
+  { to: "/investimentos", label: "Investimentos", icon: LineChart },
   { to: "/orcamento", label: "Orçamento", icon: PiggyBank },
   { to: "/relatorios", label: "Relatórios", icon: FileBarChart },
   { to: "/assistente", label: "Assistente IA", icon: Sparkles },
@@ -131,7 +132,7 @@ function SidebarInner({ collapsed, pathname }: { collapsed: boolean; pathname: s
 function Breadcrumbs({ pathname }: { pathname: string }) {
   const segments = pathname.split("/").filter(Boolean);
   const labels: Record<string, string> = {
-    dashboard: "Dashboard", contas: "Contas", cartoes: "Cartões",
+    dashboard: "Dashboard", contas: "Contas", cartoes: "Cartões", investimentos: "Investimentos",
     receitas: "Receitas", despesas: "Despesas", transferencias: "Transferências",
     categorias: "Categorias", metas: "Metas", orcamento: "Orçamento",
     relatorios: "Relatórios", assistente: "Assistente IA", perfil: "Perfil", configuracoes: "Configurações",

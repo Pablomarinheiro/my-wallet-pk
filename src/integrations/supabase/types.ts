@@ -50,6 +50,42 @@ export type Database = {
         }
         Relationships: []
       }
+      allowed_emails: {
+        Row: {
+          created_at: string
+          email: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          access_restricted: boolean
+          created_at: string
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          access_restricted?: boolean
+          created_at?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          access_restricted?: boolean
+          created_at?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       budgets: {
         Row: {
           amount_limit: number
@@ -535,6 +571,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      is_access_allowed: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { ACCESS_RESTRICTED_MESSAGE, ensureAccessAllowed } from "@/lib/access";
 
 export const Route = createFileRoute("/_app")({
   ssr: false,
@@ -16,6 +18,19 @@ function AppRoute() {
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login", replace: true });
   }, [loading, user, navigate]);
+
+  // Trava temporária de acesso: validada no backend, não no frontend.
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    (async () => {
+      const allowed = await ensureAccessAllowed();
+      if (!active || allowed) return;
+      toast.error(ACCESS_RESTRICTED_MESSAGE);
+      navigate({ to: "/login", replace: true });
+    })();
+    return () => { active = false; };
+  }, [user?.id, navigate]);
 
   if (loading || !user) {
     return (
