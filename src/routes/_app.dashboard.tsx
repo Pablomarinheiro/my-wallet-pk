@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowUpRight, ArrowDownRight, Plus, Wallet, PiggyBank, CreditCard,
-  Target, Loader2, Calendar, ChevronLeft, ChevronRight, Filter, X,
+  Target, Loader2, Calendar, ChevronLeft, ChevronRight, Filter, X, LineChart, AlertTriangle,
 } from "lucide-react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
@@ -60,6 +60,7 @@ function Dashboard() {
   const { user } = useAuth();
   const { data: accounts = [], isLoading: la } = useAccounts();
   const { data: cards = [] } = useCards();
+  const { data: installments = [] } = useCardInstallments();
   const { data: categories = [] } = useCategories();
   const { data: transactions = [], isLoading: lt } = useTransactions();
   const { data: goals = [] } = useGoals();
