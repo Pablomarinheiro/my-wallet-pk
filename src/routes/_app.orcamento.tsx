@@ -18,6 +18,7 @@ import { currency } from "@/lib/format";
 import { getIcon } from "@/lib/icons";
 import {
   useBudgets, useCategories, useTransactions, useUpsertBudget, useDeleteBudget,
+  type TransactionWithRelations,
   type BudgetRow,
 } from "@/hooks/use-mywallet";
 import { toast } from "sonner";
@@ -98,6 +99,41 @@ function BudgetDialog({
   );
 }
 
+function BudgetDetailDialog({
+  title, items, trigger,
+}: { title: string; items: TransactionWithRelations[]; trigger: ReactNode }) {
+  const total = items.reduce((sum, t) => sum + Number(t.amount), 0);
+  return (
+    <Dialog>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="rounded-3xl sm:max-w-lg">
+        <DialogHeader><DialogTitle>Lançamentos — {title}</DialogTitle></DialogHeader>
+        {items.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted-foreground">Nenhum lançamento neste mês.</p>
+        ) : (
+          <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+            {items.map((t) => (
+              <div key={t.id} className="flex items-center gap-3 rounded-2xl border border-border/70 p-3">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{t.description}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(`${t.date}T00:00:00`).toLocaleDateString("pt-BR")} · {t.account?.name ?? "Sem conta"}
+                  </div>
+                </div>
+                <div className="text-sm font-bold text-destructive">{currency(Number(t.amount))}</div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center justify-between border-t border-border/70 pt-3 text-sm">
+          <span className="text-muted-foreground">Total</span>
+          <span className="font-bold">{currency(total)}</span>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function OrcamentoPage() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -118,6 +154,19 @@ function OrcamentoPage() {
       if (d.getMonth() + 1 !== month || d.getFullYear() !== year) continue;
       if (!t.category_id) continue;
       map.set(t.category_id, (map.get(t.category_id) ?? 0) + Number(t.amount));
+    }
+    return map;
+  }, [transactions, month, year]);
+
+  const txByCat = useMemo(() => {
+    const map = new Map<string, TransactionWithRelations[]>();
+    for (const t of transactions) {
+      const d = new Date(t.date);
+      if (d.getMonth() + 1 !== month || d.getFullYear() !== year) continue;
+      if (!t.category_id) continue;
+      const list = map.get(t.category_id) ?? [];
+      list.push(t);
+      map.set(t.category_id, list);
     }
     return map;
   }, [transactions, month, year]);
@@ -191,7 +240,15 @@ function OrcamentoPage() {
                       : <Badge className="rounded-full bg-success/12 text-success hover:bg-success/12">Ok</Badge>}
                   </div>
                   <div className="mt-4 flex items-end justify-between">
-                    <div className="text-xl font-bold">{currency(spent)}</div>
+                    <BudgetDetailDialog
+                      title={b.category_name}
+                      items={b.category_id ? (txByCat.get(b.category_id) ?? []) : []}
+                      trigger={
+                        <button type="button" className="text-xl font-bold underline-offset-4 hover:underline">
+                          {currency(spent)}
+                        </button>
+                      }
+                    />
                     <div className="text-xs text-muted-foreground">{p}%</div>
                   </div>
                   <Progress value={Math.min(p, 100)} className="mt-2 h-2" />
