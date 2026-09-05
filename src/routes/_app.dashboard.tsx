@@ -479,7 +479,7 @@ function Dashboard() {
                   <SelectItem value="7">Últimos 7 dias</SelectItem>
                   <SelectItem value="30">Últimos 30 dias</SelectItem>
                   <SelectItem value="90">Últimos 90 dias</SelectItem>
-                  <SelectItem value="month">Mês atual</SelectItem>
+                  <SelectItem value="month">Mês selecionado</SelectItem>
                   <SelectItem value="year">Ano atual</SelectItem>
                   <SelectItem value="all">Todo o período</SelectItem>
                 </SelectContent>
