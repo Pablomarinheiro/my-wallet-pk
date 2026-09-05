@@ -288,7 +288,18 @@ function CartoesPage() {
                     </div>
                     <div className="flex justify-end gap-1 pt-1">
                       <CardDialog card={c} trigger={<Button variant="ghost" size="icon" aria-label="Editar"><Pencil className="h-4 w-4" /></Button>} />
-                      <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => { if (confirm(`Excluir cartão "${c.name}"?`)) del.mutate(c.id); }}><Trash2 className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => {
+                        if (!confirm(`Excluir cartão "${c.name}"?`)) return;
+                        del.mutate(c.id, {
+                          onError: (e: any) => {
+                            if (e?.code === "23503" || /foreign key|violates/i.test(e?.message ?? "")) {
+                              toast.error("Não é possível excluir: existem compras vinculadas a este cartão");
+                            } else {
+                              toast.error(e?.message ?? "Erro ao excluir cartão");
+                            }
+                          },
+                        });
+                      }}><Trash2 className="h-4 w-4" /></Button>
                     </div>
                   </div>
                 </CardContent>
