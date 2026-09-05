@@ -78,8 +78,17 @@ function Dashboard() {
 
 
   const now = new Date();
-  const thisMonth = now.getMonth();
-  const thisYear = now.getFullYear();
+  const [sel, setSel] = useState(() => {
+    const n = new Date();
+    return { month: n.getMonth(), year: n.getFullYear() };
+  });
+  const thisMonth = sel.month;
+  const thisYear = sel.year;
+  const shiftMonth = (delta: number) =>
+    setSel((s) => {
+      const d = new Date(s.year, s.month + delta, 1);
+      return { month: d.getMonth(), year: d.getFullYear() };
+    });
 
   const filteredTx = useMemo(() => {
     const start = (() => {

@@ -257,7 +257,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 export function PageHeader({
   title, description, actions, badge,
-}: { title: string; description?: string; actions?: ReactNode; badge?: string }) {
+}: { title: string; description?: string; actions?: ReactNode; badge?: ReactNode }) {
   return (
     <div className="mb-6 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:flex sm:flex-wrap sm:justify-between">
       <div className="min-w-0">
