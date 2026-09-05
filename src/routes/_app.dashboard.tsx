@@ -67,7 +67,7 @@ function Dashboard() {
   const { data: budgets = [] } = useBudgets();
 
   // ---- filtros + paginação da lista de transações ----
-  const [fPeriod, setFPeriod] = useState("30");
+  const [fPeriod, setFPeriod] = useState("month");
   const [fAccount, setFAccount] = useState("all");
   const [fCategory, setFCategory] = useState("all");
   const [fType, setFType] = useState("all");
@@ -101,9 +101,11 @@ function Dashboard() {
       d.setHours(0, 0, 0, 0);
       return d;
     })();
+    const end = fPeriod === "month" ? new Date(thisYear, thisMonth + 1, 1) : null;
     return transactions.filter((t) => {
       const d = new Date(`${t.date}T00:00:00`);
       if (start && d < start) return false;
+      if (end && d >= end) return false;
       if (fAccount !== "all" && t.account_id !== fAccount) return false;
       if (fCategory !== "all" && t.category_id !== fCategory) return false;
       if (fType !== "all" && t.type !== fType) return false;
@@ -114,8 +116,8 @@ function Dashboard() {
   const totalPages = Math.max(1, Math.ceil(filteredTx.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageTx = filteredTx.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  const filtersActive = fPeriod !== "30" || fAccount !== "all" || fCategory !== "all" || fType !== "all";
-  const clearFilters = () => { setFPeriod("30"); setFAccount("all"); setFCategory("all"); setFType("all"); };
+  const filtersActive = fPeriod !== "month" || fAccount !== "all" || fCategory !== "all" || fType !== "all";
+  const clearFilters = () => { setFPeriod("month"); setFAccount("all"); setFCategory("all"); setFType("all"); };
 
 
   const monthTx = useMemo(
