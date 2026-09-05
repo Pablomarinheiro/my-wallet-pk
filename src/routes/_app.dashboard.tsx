@@ -243,7 +243,17 @@ function Dashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        badge={`${monthName} ${thisYear}`}
+        badge={
+          <span className="inline-flex items-center gap-0.5">
+            <button type="button" aria-label="Mês anterior" onClick={() => shiftMonth(-1)} className="rounded-full p-0.5 hover:bg-primary/15">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            {monthName} {thisYear}
+            <button type="button" aria-label="Próximo mês" onClick={() => shiftMonth(1)} className="rounded-full p-0.5 hover:bg-primary/15">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </span>
+        }
         title={`Olá, ${firstName} 👋`}
         description="Aqui está o resumo das suas finanças este mês."
         actions={
