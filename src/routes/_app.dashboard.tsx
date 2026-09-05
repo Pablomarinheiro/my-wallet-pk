@@ -67,7 +67,7 @@ function Dashboard() {
   const { data: budgets = [] } = useBudgets();
 
   // ---- filtros + paginação da lista de transações ----
-  const [fPeriod, setFPeriod] = useState("30");
+  const [fPeriod, setFPeriod] = useState("month");
   const [fAccount, setFAccount] = useState("all");
   const [fCategory, setFCategory] = useState("all");
   const [fType, setFType] = useState("all");
@@ -78,8 +78,17 @@ function Dashboard() {
 
 
   const now = new Date();
-  const thisMonth = now.getMonth();
-  const thisYear = now.getFullYear();
+  const [sel, setSel] = useState(() => {
+    const n = new Date();
+    return { month: n.getMonth(), year: n.getFullYear() };
+  });
+  const thisMonth = sel.month;
+  const thisYear = sel.year;
+  const shiftMonth = (delta: number) =>
+    setSel((s) => {
+      const d = new Date(s.year, s.month + delta, 1);
+      return { month: d.getMonth(), year: d.getFullYear() };
+    });
 
   const filteredTx = useMemo(() => {
     const start = (() => {
@@ -92,9 +101,11 @@ function Dashboard() {
       d.setHours(0, 0, 0, 0);
       return d;
     })();
+    const end = fPeriod === "month" ? new Date(thisYear, thisMonth + 1, 1) : null;
     return transactions.filter((t) => {
       const d = new Date(`${t.date}T00:00:00`);
       if (start && d < start) return false;
+      if (end && d >= end) return false;
       if (fAccount !== "all" && t.account_id !== fAccount) return false;
       if (fCategory !== "all" && t.category_id !== fCategory) return false;
       if (fType !== "all" && t.type !== fType) return false;
@@ -105,8 +116,8 @@ function Dashboard() {
   const totalPages = Math.max(1, Math.ceil(filteredTx.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageTx = filteredTx.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  const filtersActive = fPeriod !== "30" || fAccount !== "all" || fCategory !== "all" || fType !== "all";
-  const clearFilters = () => { setFPeriod("30"); setFAccount("all"); setFCategory("all"); setFType("all"); };
+  const filtersActive = fPeriod !== "month" || fAccount !== "all" || fCategory !== "all" || fType !== "all";
+  const clearFilters = () => { setFPeriod("month"); setFAccount("all"); setFCategory("all"); setFType("all"); };
 
 
   const monthTx = useMemo(
@@ -234,7 +245,17 @@ function Dashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        badge={`${monthName} ${thisYear}`}
+        badge={
+          <span className="inline-flex items-center gap-0.5">
+            <button type="button" aria-label="Mês anterior" onClick={() => shiftMonth(-1)} className="rounded-full p-0.5 hover:bg-primary/15">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            {monthName} {thisYear}
+            <button type="button" aria-label="Próximo mês" onClick={() => shiftMonth(1)} className="rounded-full p-0.5 hover:bg-primary/15">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </span>
+        }
         title={`Olá, ${firstName} 👋`}
         description="Aqui está o resumo das suas finanças este mês."
         actions={
@@ -458,7 +479,7 @@ function Dashboard() {
                   <SelectItem value="7">Últimos 7 dias</SelectItem>
                   <SelectItem value="30">Últimos 30 dias</SelectItem>
                   <SelectItem value="90">Últimos 90 dias</SelectItem>
-                  <SelectItem value="month">Mês atual</SelectItem>
+                  <SelectItem value="month">Mês selecionado</SelectItem>
                   <SelectItem value="year">Ano atual</SelectItem>
                   <SelectItem value="all">Todo o período</SelectItem>
                 </SelectContent>
