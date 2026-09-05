@@ -38,7 +38,8 @@ export function exportCSV(rows: ExportRow[], filename: string) {
   triggerDownload(blob, `${filename}.csv`);
 }
 
-export function exportExcel(rows: ExportRow[], filename: string, summary?: Record<string, number>) {
+export async function exportExcel(rows: ExportRow[], filename: string, summary?: Record<string, number>) {
+  const XLSX = await import("xlsx");
   const wb = XLSX.utils.book_new();
 
   const data = rows.map((r) => ({
@@ -64,11 +65,15 @@ export function exportExcel(rows: ExportRow[], filename: string, summary?: Recor
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
-export function exportPDF(
+export async function exportPDF(
   rows: ExportRow[],
   filename: string,
   meta: { title: string; period: string; summary?: Record<string, number> },
 ) {
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+  ]);
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
