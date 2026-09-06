@@ -255,18 +255,45 @@ function CartoesPage() {
             return (
               <Card key={c.id} className="rounded-3xl border-border/70 shadow-soft">
                 <CardContent className="p-5">
-                  <div className="relative overflow-hidden rounded-2xl p-5 text-white shadow-elevated" style={{ background: `linear-gradient(135deg, ${c.color}, oklch(from ${c.color} calc(l - 0.15) c h))` }}>
-                    <div className="flex items-center justify-between">
-                      <div className="text-[11px] uppercase tracking-widest text-white/70">{c.name}</div>
-                      <CreditCard className="h-5 w-5 opacity-80" />
+                  <div
+                    className="relative overflow-hidden rounded-2xl p-5 text-white shadow-elevated"
+                    style={{
+                      background: `
+                        radial-gradient(120% 160% at 85% -10%, oklch(from ${c.color} calc(l + 0.18) c h) 0%, transparent 55%),
+                        radial-gradient(140% 180% at -10% 110%, oklch(from ${c.color} calc(l - 0.28) calc(c * 0.8) h) 0%, transparent 60%),
+                        linear-gradient(135deg, oklch(from ${c.color} calc(l + 0.06) c h) 0%, ${c.color} 45%, oklch(from ${c.color} calc(l - 0.2) c h) 100%)`,
+                    }}
+                  >
+                    {/* textura sutil de linhas diagonais */}
+                    <div
+                      className="pointer-events-none absolute inset-0 opacity-[0.07]"
+                      style={{ backgroundImage: "repeating-linear-gradient(115deg, #fff 0px, #fff 1px, transparent 1px, transparent 9px)" }}
+                    />
+                    {/* brilho superior */}
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent" />
+
+                    <div className="relative flex items-center justify-between">
+                      <div className="text-[11px] font-medium uppercase tracking-widest text-white/80">{c.name}</div>
+                      {/* chip ilustrado */}
+                      <svg width="34" height="26" viewBox="0 0 34 26" aria-hidden="true" className="drop-shadow-sm">
+                        <rect x="1" y="1" width="32" height="24" rx="5" fill="url(#chipg)" stroke="rgba(120,80,10,0.55)" />
+                        <path d="M1 9h10M23 9h10M1 17h10M23 17h10M11 1v8M11 17v8M23 1v8M23 17v8M11 9h12v8H11z" stroke="rgba(120,80,10,0.55)" fill="none" />
+                        <defs>
+                          <linearGradient id="chipg" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stopColor="#f4d47c" />
+                            <stop offset="0.5" stopColor="#e2b64f" />
+                            <stop offset="1" stopColor="#c99a35" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
                     </div>
-                    <div className="mt-5 font-mono text-base tracking-widest">•••• •••• •••• {c.id.slice(0, 4).toUpperCase()}</div>
-                    <div className="mt-4 flex items-end justify-between">
+                    <div className="relative mt-5 font-mono text-lg font-semibold tracking-[0.2em] drop-shadow-sm">•••• •••• •••• {c.id.slice(0, 4).toUpperCase()}</div>
+                    <div className="relative mt-4 flex items-end justify-between">
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-white/60">Fatura deste mês</div>
+                        <div className="text-[10px] uppercase tracking-wider text-white/65">Fatura deste mês</div>
                         <div className="text-lg font-bold">{currency(totals.invoice)}</div>
                       </div>
-                      <Badge className="rounded-full bg-white/20 text-white hover:bg-white/25">{c.brand}</Badge>
+                      <Badge className="rounded-full border border-white/25 bg-white/15 font-semibold tracking-wide text-white backdrop-blur-sm hover:bg-white/20">{c.brand}</Badge>
                     </div>
                   </div>
 
