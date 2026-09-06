@@ -27,3 +27,13 @@
 - Allowlist: pkdemoapp@gmail.com, pabloeduraimundo@gmail.com
 - Checagem no backend (função no banco + RLS), aplicada no login e-mail/senha, Google e cadastro
 - Liberar acesso no futuro = mudar `access_restricted` para false no banco, sem alterar código
+
+## Otimização de carregamento
+- jsPDF/xlsx via import dinâmico (só ao exportar)
+- Chunk separado para recharts/d3
+- Cache-control immutable para /assets/**
+- Google Fonts não-bloqueante (media=print + onLoad)
+
+## Melhorias visuais pontuais
+- Card de cartão com visual de cartão físico (gradiente, chip, bandeira)
+- Donut chart Receitas vs Despesas no Dashboard (percentual no centro)

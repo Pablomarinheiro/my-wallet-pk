@@ -51,12 +51,23 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+// Hashed build assets (JS/CSS emitted by Vite under /assets/) never change
+// content for a given URL — cache them immutably for a year.
+function withImmutableAssetCache(response: Response, request: Request): Response {
+  const { pathname } = new URL(request.url);
+  if (!pathname.startsWith("/assets/") || response.status !== 200) return response;
+  if (response.headers.has("cache-control")) return response;
+  const headers = new Headers(response.headers);
+  headers.set("cache-control", "public, max-age=31536000, immutable");
+  return new Response(response.body, { status: response.status, headers });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response, request);
+      return await normalizeCatastrophicSsrResponse(withImmutableAssetCache(response, request), request);
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {

@@ -12,4 +12,19 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            // Heavy chart lib in its own long-lived chunk; only the routes that
+            // render charts (Dashboard/Relatórios/Investimentos) pull it in.
+            if (id.includes("node_modules/recharts") || id.includes("node_modules/d3-")) {
+              return "charts";
+            }
+          },
+        },
+      },
+    },
+  },
 });
