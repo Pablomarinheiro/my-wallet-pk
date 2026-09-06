@@ -301,7 +301,7 @@ function Dashboard() {
 
 
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
         <Card className="rounded-3xl border-border/70 shadow-soft xl:col-span-2">
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
             <div>
@@ -368,6 +368,67 @@ function Dashboard() {
                       <span className="font-semibold text-foreground">{currency(c.value)}</span>
                     </div>
                   ))}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border-border/70 shadow-soft">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Receitas vs Despesas</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">{monthName} de {thisYear}</p>
+          </CardHeader>
+          <CardContent>
+            {income === 0 && expense === 0 ? (
+              <div className="py-10 text-center text-sm text-muted-foreground">Sem movimentação este mês</div>
+            ) : (
+              <>
+                <div className="relative h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Receitas", value: income },
+                          { name: "Despesas", value: expense },
+                        ]}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={62}
+                        outerRadius={84}
+                        paddingAngle={3}
+                        strokeWidth={0}
+                        startAngle={90}
+                        endAngle={-270}
+                      >
+                        <Cell fill="#22C55E" />
+                        <Cell fill="#EF4444" />
+                      </Pie>
+                      <Tooltip formatter={(v: number) => currency(v)} contentStyle={{ borderRadius: 16, border: "1px solid #E2E8F0" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="pointer-events-none absolute inset-0 grid place-items-center">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-foreground">
+                        {Math.round((income / (income + expense)) * 100)}%
+                      </div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">de receitas</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="inline-flex items-center gap-2 text-muted-foreground">
+                      <span className="h-2 w-2 rounded-full" style={{ background: "#22C55E" }} /> Receitas
+                    </span>
+                    <span className="font-semibold text-foreground">{currency(income)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="inline-flex items-center gap-2 text-muted-foreground">
+                      <span className="h-2 w-2 rounded-full" style={{ background: "#EF4444" }} /> Despesas
+                    </span>
+                    <span className="font-semibold text-foreground">{currency(expense)}</span>
+                  </div>
                 </div>
               </>
             )}
