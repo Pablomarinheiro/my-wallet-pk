@@ -12,4 +12,26 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  nitro: {
+    routeRules: {
+      // Hashed build assets (JS/CSS/fonts emitted by Vite) never change content
+      // for a given URL — safe to cache for a year.
+      "/assets/**": {
+        headers: { "cache-control": "public, max-age=31536000, immutable" },
+      },
+    },
+  },
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Heavy chart lib in its own long-lived chunk; only the routes that
+            // render charts (Dashboard/Relatórios/Investimentos) pull it in.
+            charts: ["recharts"],
+          },
+        },
+      },
+    },
+  },
 });
