@@ -287,7 +287,7 @@ function CartoesPage() {
                         </defs>
                       </svg>
                     </div>
-                    <div className="relative mt-5 font-mono text-lg font-semibold tracking-[0.2em] drop-shadow-sm">•••• •••• •••• {c.id.slice(0, 4).toUpperCase()}</div>
+                    <div className="relative mt-5 whitespace-nowrap font-mono text-base font-semibold tracking-[0.18em] drop-shadow-sm">•••• •••• •••• {c.id.slice(0, 4).toUpperCase()}</div>
                     <div className="relative mt-4 flex items-end justify-between">
                       <div>
                         <div className="text-[10px] uppercase tracking-wider text-white/65">Fatura deste mês</div>
