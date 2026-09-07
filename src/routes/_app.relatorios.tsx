@@ -17,7 +17,7 @@ import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
   Line, LineChart, Legend,
 } from "recharts";
-import { currency, shortDate } from "@/lib/format";
+import { currency, parseLocalDate, shortDate } from "@/lib/format";
 import { useAccounts, useCategories, useTransactions } from "@/hooks/use-mywallet";
 import { exportCSV, exportExcel, exportPDF, type ExportRow } from "@/lib/exports";
 import { toast } from "sonner";
@@ -58,10 +58,10 @@ function RelatoriosPage() {
   }
 
   const filtered = useMemo(() => {
-    const start = new Date(from + "T00:00:00");
+    const start = parseLocalDate(from);
     const end = new Date(to + "T23:59:59");
     return transactions.filter((t) => {
-      const d = new Date(t.date);
+      const d = parseLocalDate(t.date);
       if (d < start || d > end) return false;
       if (accountId !== "all" && t.account_id !== accountId) return false;
       if (categoryId !== "all" && t.category_id !== categoryId) return false;
@@ -82,7 +82,7 @@ function RelatoriosPage() {
   const monthly = useMemo(() => {
     const map = new Map<string, { key: string; month: string; income: number; expense: number }>();
     for (const t of filtered) {
-      const d = new Date(t.date);
+      const d = parseLocalDate(t.date);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       const label = `${MONTH_LABELS[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`;
       const cur = map.get(key) ?? { key, month: label, income: 0, expense: 0 };
@@ -93,7 +93,7 @@ function RelatoriosPage() {
     return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key));
   }, [filtered]);
 
-  const period = `${new Date(from).toLocaleDateString("pt-BR")} — ${new Date(to).toLocaleDateString("pt-BR")}`;
+  const period = `${parseLocalDate(from).toLocaleDateString("pt-BR")} — ${parseLocalDate(to).toLocaleDateString("pt-BR")}`;
 
   function toExportRows(): ExportRow[] {
     return filtered

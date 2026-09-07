@@ -14,7 +14,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Loader2, PiggyBank } from "lucide-react";
-import { currency } from "@/lib/format";
+import { currency, parseLocalDate } from "@/lib/format";
 import { getIcon } from "@/lib/icons";
 import {
   useBudgets, useCategories, useTransactions, useUpsertBudget, useDeleteBudget,
@@ -150,7 +150,7 @@ function OrcamentoPage() {
   const spentByCat = useMemo(() => {
     const map = new Map<string, number>();
     for (const t of transactions) {
-      const d = new Date(t.date);
+      const d = parseLocalDate(t.date);
       if (d.getMonth() + 1 !== month || d.getFullYear() !== year) continue;
       if (!t.category_id) continue;
       map.set(t.category_id, (map.get(t.category_id) ?? 0) + Number(t.amount));
@@ -161,7 +161,7 @@ function OrcamentoPage() {
   const txByCat = useMemo(() => {
     const map = new Map<string, TransactionWithRelations[]>();
     for (const t of transactions) {
-      const d = new Date(t.date);
+      const d = parseLocalDate(t.date);
       if (d.getMonth() + 1 !== month || d.getFullYear() !== year) continue;
       if (!t.category_id) continue;
       const list = map.get(t.category_id) ?? [];

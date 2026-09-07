@@ -19,7 +19,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
   Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { currency, shortDate } from "@/lib/format";
+import { currency, parseLocalDate, shortDate } from "@/lib/format";
 import { getIcon } from "@/lib/icons";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -122,7 +122,7 @@ function Dashboard() {
 
   const monthTx = useMemo(
     () => transactions.filter((t) => {
-      const d = new Date(t.date);
+      const d = parseLocalDate(t.date);
       return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
     }),
     [transactions, thisMonth, thisYear],
@@ -143,7 +143,7 @@ function Dashboard() {
     }
     const start = new Date(thisYear, thisMonth - 6, 1);
     for (const t of transactions) {
-      const d = new Date(t.date);
+      const d = parseLocalDate(t.date);
       if (d < start) continue;
       const idx = (d.getFullYear() - start.getFullYear()) * 12 + (d.getMonth() - start.getMonth());
       if (idx < 0 || idx >= buckets.length) continue;
@@ -214,7 +214,7 @@ function Dashboard() {
     const today = new Date(thisYear, thisMonth, now.getDate());
     const items: Array<{ id: string; date: Date; label: string; amount: number; tone: string }> = [];
     for (const t of transactions) {
-      const d = new Date(t.date);
+      const d = parseLocalDate(t.date);
       if (t.status === "pending" && d >= today) {
         items.push({
           id: t.id, date: d, label: t.description,
