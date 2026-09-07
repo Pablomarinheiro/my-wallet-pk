@@ -1,4 +1,4 @@
-import { currency } from "./format";
+import { currency, parseLocalDate } from "./format";
 
 export type ExportRow = {
   date: string;
@@ -11,7 +11,7 @@ export type ExportRow = {
 };
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("pt-BR");
+  return parseLocalDate(iso).toLocaleDateString("pt-BR");
 }
 
 function typeLabel(t: string) {
