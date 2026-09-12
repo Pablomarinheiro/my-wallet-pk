@@ -491,6 +491,7 @@ export type Database = {
           date: string;
           description: string;
           id: string;
+          source: string;
           status: string;
           transfer_account_id: string | null;
           type: string;
@@ -505,6 +506,7 @@ export type Database = {
           date?: string;
           description: string;
           id?: string;
+          source?: string;
           status?: string;
           transfer_account_id?: string | null;
           type: string;
@@ -519,6 +521,7 @@ export type Database = {
           date?: string;
           description?: string;
           id?: string;
+          source?: string;
           status?: string;
           transfer_account_id?: string | null;
           type?: string;
@@ -545,6 +548,98 @@ export type Database = {
             columns: ["transfer_account_id"];
             isOneToOne: false;
             referencedRelation: "accounts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      whatsapp_authorizations: {
+        Row: {
+          authorization_status: string;
+          confirmation_code: string | null;
+          confirmation_expires_at: string | null;
+          confirmed_at: string | null;
+          created_at: string;
+          failed_attempts: number;
+          failed_attempts_reset_at: string | null;
+          id: string;
+          phone_number: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          authorization_status?: string;
+          confirmation_code?: string | null;
+          confirmation_expires_at?: string | null;
+          confirmed_at?: string | null;
+          created_at?: string;
+          failed_attempts?: number;
+          failed_attempts_reset_at?: string | null;
+          id?: string;
+          phone_number: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          authorization_status?: string;
+          confirmation_code?: string | null;
+          confirmation_expires_at?: string | null;
+          confirmed_at?: string | null;
+          created_at?: string;
+          failed_attempts?: number;
+          failed_attempts_reset_at?: string | null;
+          id?: string;
+          phone_number?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      sync_logs: {
+        Row: {
+          channel: string;
+          confidence: number | null;
+          created_at: string;
+          direction: string;
+          error_message: string | null;
+          id: string;
+          parsed_result: Json | null;
+          raw_message: string | null;
+          status: string;
+          transaction_id: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          channel?: string;
+          confidence?: number | null;
+          created_at?: string;
+          direction: string;
+          error_message?: string | null;
+          id?: string;
+          parsed_result?: Json | null;
+          raw_message?: string | null;
+          status: string;
+          transaction_id?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          channel?: string;
+          confidence?: number | null;
+          created_at?: string;
+          direction?: string;
+          error_message?: string | null;
+          id?: string;
+          parsed_result?: Json | null;
+          raw_message?: string | null;
+          status?: string;
+          transaction_id?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sync_logs_transaction_id_fkey";
+            columns: ["transaction_id"];
+            isOneToOne: false;
+            referencedRelation: "transactions";
             referencedColumns: ["id"];
           },
         ];
