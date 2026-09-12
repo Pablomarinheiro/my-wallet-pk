@@ -19,7 +19,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
   Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { currency, parseLocalDate, shortDate } from "@/lib/format";
+import { currency, isInMonth, parseLocalDate, shortDate } from "@/lib/format";
 import { getIcon } from "@/lib/icons";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -103,7 +103,7 @@ function Dashboard() {
     })();
     const end = fPeriod === "month" ? new Date(thisYear, thisMonth + 1, 1) : null;
     return transactions.filter((t) => {
-      const d = new Date(`${t.date}T00:00:00`);
+      const d = parseLocalDate(t.date);
       if (start && d < start) return false;
       if (end && d >= end) return false;
       if (fAccount !== "all" && t.account_id !== fAccount) return false;
@@ -121,10 +121,7 @@ function Dashboard() {
 
 
   const monthTx = useMemo(
-    () => transactions.filter((t) => {
-      const d = parseLocalDate(t.date);
-      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-    }),
+    () => transactions.filter((t) => isInMonth(t.date, thisMonth, thisYear)),
     [transactions, thisMonth, thisYear],
   );
 
@@ -185,12 +182,22 @@ function Dashboard() {
   const invoiceByCard = useMemo(() => {
     const m = new Map<string, number>();
     for (const inst of installments) {
-      const d = new Date(`${inst.due_date}T00:00:00`);
-      if (d.getMonth() !== thisMonth || d.getFullYear() !== thisYear) continue;
+      if (!isInMonth(inst.due_date, thisMonth, thisYear)) continue;
       m.set(inst.card_id, (m.get(inst.card_id) ?? 0) + Number(inst.amount));
     }
     return m;
   }, [installments, thisMonth, thisYear]);
+
+  // Limite comprometido de cada cartão — mesma regra usada na tela de Cartões
+  // (soma das parcelas ainda não pagas), para não divergir do valor mostrado lá.
+  const openByCard = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const inst of installments) {
+      if (inst.paid) continue;
+      m.set(inst.card_id, (m.get(inst.card_id) ?? 0) + Number(inst.amount));
+    }
+    return m;
+  }, [installments]);
 
   const budgetAlerts = useMemo(() => {
     const spentByCat = new Map<string, number>();
@@ -488,30 +495,39 @@ function Dashboard() {
               </div>
             ) : (
               <>
-                <div className="relative overflow-hidden rounded-2xl p-5 text-white shadow-elevated" style={{ background: mainCard.color }}>
-                  <div className="flex items-center justify-between">
-                    <div className="text-[11px] uppercase tracking-widest text-white/60">{mainCard.name}</div>
-                    <CreditCard className="h-5 w-5 opacity-80" />
-                  </div>
-                  <div className="mt-6 font-mono text-base tracking-widest">•••• •••• •••• ••••</div>
-                  <div className="mt-4 flex items-end justify-between">
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider text-white/60">Fatura atual</div>
-                      <div className="text-lg font-bold">{currency(Number(mainCard.used))}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] uppercase tracking-wider text-white/60">Vence</div>
-                      <div className="text-sm font-semibold">Dia {mainCard.due_day}</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Limite usado</span>
-                    <span className="font-semibold text-foreground">{currency(Number(mainCard.used))} / {currency(Number(mainCard.limit))}</span>
-                  </div>
-                  <Progress value={Number(mainCard.limit) > 0 ? (Number(mainCard.used) / Number(mainCard.limit)) * 100 : 0} className="h-2" />
-                </div>
+                {(() => {
+                  const invoice = invoiceByCard.get(mainCard.id) ?? 0;
+                  const open = openByCard.get(mainCard.id) ?? 0;
+                  const limit = Number(mainCard.limit);
+                  return (
+                    <>
+                      <div className="relative overflow-hidden rounded-2xl p-5 text-white shadow-elevated" style={{ background: mainCard.color }}>
+                        <div className="flex items-center justify-between">
+                          <div className="text-[11px] uppercase tracking-widest text-white/60">{mainCard.name}</div>
+                          <CreditCard className="h-5 w-5 opacity-80" />
+                        </div>
+                        <div className="mt-6 font-mono text-base tracking-widest">•••• •••• •••• ••••</div>
+                        <div className="mt-4 flex items-end justify-between">
+                          <div>
+                            <div className="text-[10px] uppercase tracking-wider text-white/60">Fatura atual</div>
+                            <div className="text-lg font-bold">{currency(invoice)}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-[10px] uppercase tracking-wider text-white/60">Vence</div>
+                            <div className="text-sm font-semibold">Dia {mainCard.due_day}</div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Limite usado</span>
+                          <span className="font-semibold text-foreground">{currency(open)} / {currency(limit)}</span>
+                        </div>
+                        <Progress value={limit > 0 ? (open / limit) * 100 : 0} className="h-2" />
+                      </div>
+                    </>
+                  );
+                })()}
               </>
             )}
           </CardContent>

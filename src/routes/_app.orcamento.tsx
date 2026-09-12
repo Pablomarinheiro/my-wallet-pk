@@ -14,7 +14,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Loader2, PiggyBank } from "lucide-react";
-import { currency, parseLocalDate } from "@/lib/format";
+import { currency, isInMonth, parseLocalDate } from "@/lib/format";
 import { getIcon } from "@/lib/icons";
 import {
   useBudgets, useCategories, useTransactions, useUpsertBudget, useDeleteBudget,
@@ -117,7 +117,7 @@ function BudgetDetailDialog({
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{t.description}</div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(`${t.date}T00:00:00`).toLocaleDateString("pt-BR")} · {t.account?.name ?? "Sem conta"}
+                    {parseLocalDate(t.date).toLocaleDateString("pt-BR")} · {t.account?.name ?? "Sem conta"}
                   </div>
                 </div>
                 <div className="text-sm font-bold text-destructive">{currency(Number(t.amount))}</div>
@@ -150,8 +150,7 @@ function OrcamentoPage() {
   const spentByCat = useMemo(() => {
     const map = new Map<string, number>();
     for (const t of transactions) {
-      const d = parseLocalDate(t.date);
-      if (d.getMonth() + 1 !== month || d.getFullYear() !== year) continue;
+      if (!isInMonth(t.date, month - 1, year)) continue;
       if (!t.category_id) continue;
       map.set(t.category_id, (map.get(t.category_id) ?? 0) + Number(t.amount));
     }
@@ -161,8 +160,7 @@ function OrcamentoPage() {
   const txByCat = useMemo(() => {
     const map = new Map<string, TransactionWithRelations[]>();
     for (const t of transactions) {
-      const d = parseLocalDate(t.date);
-      if (d.getMonth() + 1 !== month || d.getFullYear() !== year) continue;
+      if (!isInMonth(t.date, month - 1, year)) continue;
       if (!t.category_id) continue;
       const list = map.get(t.category_id) ?? [];
       list.push(t);
@@ -255,7 +253,7 @@ function OrcamentoPage() {
                   <div className="mt-2 text-[11px] text-muted-foreground">Disponível: {currency(Math.max(0, lim - spent))}</div>
                   <div className="mt-4 flex gap-2">
                     <BudgetDialog budget={b} defaultMonth={month} defaultYear={year} trigger={<Button variant="outline" className="flex-1 rounded-2xl"><Pencil className="h-4 w-4" /> Editar</Button>} />
-                    <Button variant="outline" className="rounded-2xl text-destructive" onClick={() => { if (confirm(`Excluir orçamento de ${b.category_name}?`)) del.mutate(b.id); }}>
+                    <Button variant="outline" className="rounded-2xl text-destructive" onClick={() => { if (confirm(`Excluir orçamento de ${b.category_name}?`)) del.mutate(b.id, { onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir orçamento") }); }}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

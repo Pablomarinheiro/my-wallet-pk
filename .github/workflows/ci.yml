@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -14,7 +13,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # @tanstack/react-start and the @ai-sdk/* packages require Node >=22
+          # (>=22.12 for react-start) — Node 20 only produced EBADENGINE
+          # warnings today, but a future dependency bump could turn that into
+          # a hard install failure.
+          node-version: 22
           cache: npm
 
       - run: npm ci
@@ -25,5 +28,20 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Test
+        run: npm run test
+
       - name: Build
         run: npm run build
+
+      # Surfaces the chunks vite.config.ts's manualChunks() splits out (e.g. the
+      # "charts" chunk for recharts/d3) so a broken manualChunks config — chunk
+      # missing, or unexpectedly huge — is visible directly in the CI log instead
+      # of only showing up later as a slow-loading page in production.
+      - name: List generated build chunks
+        run: |
+          echo "Searching build output for generated asset chunks..."
+          find . -path ./node_modules -prune -o -type d -name assets -print 2>/dev/null | while read -r dir; do
+            echo "--- $dir ---"
+            ls -lh "$dir"
+          done

@@ -14,6 +14,27 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/use-auth";
 
+// TanStack's `links` head config types `attrs` as `Record<string, any>`, so it
+// won't catch `onLoad` being written as a raw HTML-attribute string (e.g.
+// `onLoad: "this.media='all'"`) instead of a real handler — that silently no-ops
+// instead of flipping the stylesheet from print to all. Typing this object
+// explicitly as a function makes that regression a type-check failure again.
+type FontPreloadLink = {
+  rel: "stylesheet";
+  href: string;
+  media: "print";
+  onLoad: (e: React.SyntheticEvent<HTMLLinkElement>) => void;
+};
+
+const fontStylesheetLink: FontPreloadLink = {
+  rel: "stylesheet",
+  href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+  media: "print",
+  onLoad: (e) => {
+    e.currentTarget.media = "all";
+  },
+};
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4">
@@ -94,14 +115,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       // Font stylesheet is non-render-blocking: starts as print media, flips to
       // all once loaded, so it never delays first paint on login/cadastro.
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
-        media: "print",
-        onLoad: (e: React.SyntheticEvent<HTMLLinkElement>) => {
-          e.currentTarget.media = "all";
-        },
-      },
+      fontStylesheetLink,
     ],
   }),
   shellComponent: RootShell,

@@ -142,7 +142,7 @@ function ContasPage() {
                     </div>
                     <div className="flex gap-1">
                       <AccountDialog account={a} trigger={<Button variant="ghost" size="icon" aria-label="Editar"><Pencil className="h-4 w-4" /></Button>} />
-                      <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => { if (confirm(`Excluir conta "${a.name}"?`)) del.mutate(a.id); }}><Trash2 className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => { if (confirm(`Excluir conta "${a.name}"?`)) del.mutate(a.id, { onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir conta") }); }}><Trash2 className="h-4 w-4" /></Button>
                     </div>
                   </div>
                   <div className="mt-4">

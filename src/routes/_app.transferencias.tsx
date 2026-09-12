@@ -139,7 +139,7 @@ function TransferPage() {
                     </div>
                     <Button
                       variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive"
-                      onClick={() => del.mutate(h.id)} aria-label="Excluir transferência"
+                      onClick={() => del.mutate(h.id, { onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir transferência") })} aria-label="Excluir transferência"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

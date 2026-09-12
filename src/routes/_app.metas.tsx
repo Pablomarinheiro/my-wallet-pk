@@ -10,7 +10,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Target, Calendar, Pencil, Trash2, Loader2 } from "lucide-react";
-import { currency } from "@/lib/format";
+import { currency, parseLocalDate } from "@/lib/format";
 import { COLOR_OPTIONS } from "@/lib/icons";
 import {
   useGoals, useUpsertGoal, useDeleteGoal, type GoalRow,
@@ -121,7 +121,7 @@ function MetasPage() {
                       <div className="truncate text-base font-semibold">{g.name}</div>
                       {g.deadline && (
                         <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <Calendar className="h-3 w-3" /> até {new Date(g.deadline).toLocaleDateString("pt-BR")}
+                          <Calendar className="h-3 w-3" /> até {parseLocalDate(g.deadline).toLocaleDateString("pt-BR")}
                         </div>
                       )}
                     </div>
@@ -138,7 +138,7 @@ function MetasPage() {
                   </div>
                   <div className="mt-4 flex gap-2">
                     <GoalDialog goal={g} trigger={<Button variant="outline" className="flex-1 rounded-2xl"><Pencil className="h-4 w-4" /> Editar</Button>} />
-                    <Button variant="outline" className="rounded-2xl text-destructive" onClick={() => { if (confirm(`Excluir a meta "${g.name}"?`)) del.mutate(g.id); }}>
+                    <Button variant="outline" className="rounded-2xl text-destructive" onClick={() => { if (confirm(`Excluir a meta "${g.name}"?`)) del.mutate(g.id, { onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir meta") }); }}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { CreditCard, Plus, Pencil, Trash2, Loader2, ShoppingBag } from "lucide-react";
+import { CreditCard, Plus, Pencil, Trash2, Loader2, ShoppingBag, Eye, EyeOff } from "lucide-react";
 import { currency } from "@/lib/format";
 import { COLOR_OPTIONS } from "@/lib/icons";
 import {
@@ -37,6 +37,14 @@ export const Route = createFileRoute("/_app/cartoes")({
 
 const BRANDS = ["Visa", "Mastercard", "Elo"] as const;
 const NONE = "none";
+
+// Não há número de cartão real no schema — deriva 16 dígitos estáveis a partir do id,
+// só para o efeito visual de revelar/ocultar (não representa um dado novo persistido).
+function pseudoCardNumber(id: string) {
+  const digits = id.replace(/[^0-9]/g, "") || "0";
+  const padded = (digits + digits + digits).slice(0, 16).padStart(16, "0");
+  return padded.match(/.{1,4}/g)!.join(" ");
+}
 
 function monthKey(d: string | Date) {
   const dt = typeof d === "string" ? new Date(`${d}T00:00:00`) : d;
@@ -207,6 +215,15 @@ function CartoesPage() {
   const del = useDeleteCard();
   const delPurchase = useDeleteCardPurchase();
   const thisMonth = monthKey(new Date());
+  const [revealedId, setRevealedId] = useState<string | null>(null);
+
+  function toggleReveal(id: string) {
+    setRevealedId((cur) => {
+      if (cur === id) return null;
+      setTimeout(() => setRevealedId((c) => (c === id ? null : c)), 6000);
+      return id;
+    });
+  }
 
   const byCard = useMemo(() => {
     const m = new Map<string, { invoice: number; openTotal: number }>();
@@ -287,7 +304,21 @@ function CartoesPage() {
                         </defs>
                       </svg>
                     </div>
-                    <div className="relative mt-5 whitespace-nowrap font-mono text-base font-semibold tracking-[0.18em] drop-shadow-sm">•••• •••• •••• {c.id.slice(0, 4).toUpperCase()}</div>
+                    <div className="relative mt-5 flex items-center justify-between gap-3">
+                      <div className="whitespace-nowrap font-mono text-base font-semibold tracking-[0.18em] drop-shadow-sm">
+                        {revealedId === c.id
+                          ? pseudoCardNumber(c.id)
+                          : `•••• •••• •••• ${c.id.slice(0, 4).toUpperCase()}`}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleReveal(c.id)}
+                        aria-label={revealedId === c.id ? "Ocultar número do cartão" : "Mostrar número do cartão"}
+                        className="shrink-0 rounded-full p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white"
+                      >
+                        {revealedId === c.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                     <div className="relative mt-4 flex items-end justify-between">
                       <div>
                         <div className="text-[10px] uppercase tracking-wider text-white/65">Fatura deste mês</div>
@@ -365,7 +396,7 @@ function CartoesPage() {
                     <div className="text-[11px] text-muted-foreground">total {currency(Number(p.total_amount))}</div>
                   </div>
                   <Button variant="ghost" size="icon" aria-label="Excluir compra"
-                    onClick={() => { if (confirm(`Excluir a compra "${p.description}"?`)) delPurchase.mutate(p.id); }}>
+                    onClick={() => { if (confirm(`Excluir a compra "${p.description}"?`)) delPurchase.mutate(p.id, { onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir compra") }); }}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

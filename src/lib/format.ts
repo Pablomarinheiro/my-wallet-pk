@@ -15,3 +15,16 @@ export function parseLocalDate(iso: string): Date {
 
 export const shortDate = (iso: string) =>
   parseLocalDate(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+
+/**
+ * Verifica se uma data "YYYY-MM-DD" cai no mês/ano informados, tratando a
+ * string como data local (via parseLocalDate) em vez de UTC. `month` é
+ * 0-indexado (janeiro = 0), igual ao retorno de `Date#getMonth()`.
+ *
+ * Centraliza o agrupamento "esta transação é deste mês?" repetido em
+ * Dashboard/Orçamento/Relatórios, para que um teste cubra as três telas.
+ */
+export function isInMonth(iso: string, month: number, year: number): boolean {
+  const d = parseLocalDate(iso);
+  return d.getMonth() === month && d.getFullYear() === year;
+}

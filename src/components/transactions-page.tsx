@@ -204,7 +204,7 @@ export function TransactionsPage({
                         <TableCell>
                           <div className="flex justify-end gap-1">
                             <TxDialog tx={t} kind={kind} trigger={<Button variant="ghost" size="icon" aria-label="Editar"><Pencil className="h-4 w-4" /></Button>} />
-                            <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => { if (confirm("Excluir esta transação?")) del.mutate(t.id); }}><Trash2 className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => { if (confirm("Excluir esta transação?")) del.mutate(t.id, { onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir transação") }); }}><Trash2 className="h-4 w-4" /></Button>
                           </div>
                         </TableCell>
                       </TableRow>

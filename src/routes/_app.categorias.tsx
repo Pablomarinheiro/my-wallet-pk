@@ -113,7 +113,7 @@ function CategoriasPage() {
                   </div>
                   <div className="flex gap-1">
                     <CategoryDialog category={c} trigger={<Button size="icon" variant="ghost" aria-label="Editar"><Pencil className="h-4 w-4" /></Button>} />
-                    <Button size="icon" variant="ghost" aria-label="Excluir" onClick={() => { if (confirm(`Excluir categoria "${c.name}"?`)) del.mutate(c.id); }}><Trash2 className="h-4 w-4" /></Button>
+                    <Button size="icon" variant="ghost" aria-label="Excluir" onClick={() => { if (confirm(`Excluir categoria "${c.name}"?`)) del.mutate(c.id, { onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir categoria") }); }}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 </div>
                 <div className="mt-3 text-sm font-semibold text-foreground">{c.name}</div>

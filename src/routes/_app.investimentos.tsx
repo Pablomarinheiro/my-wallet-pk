@@ -236,7 +236,7 @@ function InvestimentosPage() {
                     <MovementDialog investment={i} kind="withdraw" trigger={<Button variant="ghost" size="icon" aria-label="Resgatar"><ArrowUpFromLine className="h-4 w-4" /></Button>} />
                     <InvestmentDialog investment={i} trigger={<Button variant="ghost" size="icon" aria-label="Editar"><Pencil className="h-4 w-4" /></Button>} />
                     <Button variant="ghost" size="icon" aria-label="Excluir"
-                      onClick={() => { if (confirm(`Excluir "${i.name}"?`)) del.mutate(i.id); }}>
+                      onClick={() => { if (confirm(`Excluir "${i.name}"?`)) del.mutate(i.id, { onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir investimento") }); }}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
