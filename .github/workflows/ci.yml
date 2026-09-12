@@ -20,7 +20,19 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      # `npm ci` is normally preferred for reproducibility, but it demands a
+      # fully self-contained lock file, and this repo's lock never stays that
+      # way: @tailwindcss/oxide-wasm32-wasi / @rolldown/binding-wasm32-wasi are
+      # optional cross-platform WASM fallbacks whose own dependencies
+      # (@emnapi/core, @emnapi/runtime, ...) only get resolved and written to
+      # package-lock.json when that specific optional variant is the one
+      # actually selected for the host running `npm install` — which never
+      # happens on a normal dev machine (Windows/macOS/Linux all have a faster
+      # native binary available), so the lock regenerated locally always comes
+      # up short again on CI. `npm install` resolves fresh for the runner's
+      # own platform instead of requiring the checked-in lock to already be
+      # complete for it, which is what actually needs to happen here.
+      - run: npm install
 
       - name: Type check
         run: npx tsc --noEmit
