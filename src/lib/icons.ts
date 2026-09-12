@@ -1,7 +1,24 @@
 import {
-  Utensils, Car, ShoppingCart, Gamepad2, HeartPulse, GraduationCap,
-  Home as HomeIcon, Briefcase, Laptop, TrendingUp, Wallet, Tag,
-  Building2, Banknote, Plane, Coffee, Gift, Music, Film, Book,
+  Utensils,
+  Car,
+  ShoppingCart,
+  Gamepad2,
+  HeartPulse,
+  GraduationCap,
+  Home as HomeIcon,
+  Briefcase,
+  Laptop,
+  TrendingUp,
+  Wallet,
+  Tag,
+  Building2,
+  Banknote,
+  Plane,
+  Coffee,
+  Gift,
+  Music,
+  Film,
+  Book,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -30,8 +47,16 @@ export const ICONS: Record<string, LucideIcon> = {
 
 export const ICON_OPTIONS = Object.keys(ICONS);
 export const COLOR_OPTIONS = [
-  "#2563EB", "#22C55E", "#EF4444", "#F59E0B", "#8B5CF6",
-  "#EC4899", "#0EA5E9", "#F97316", "#111827", "#14B8A6",
+  "#2563EB",
+  "#22C55E",
+  "#EF4444",
+  "#F59E0B",
+  "#8B5CF6",
+  "#EC4899",
+  "#0EA5E9",
+  "#F97316",
+  "#111827",
+  "#14B8A6",
 ];
 
 export function getIcon(name: string | null | undefined): LucideIcon {

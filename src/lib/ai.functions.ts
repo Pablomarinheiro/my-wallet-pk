@@ -19,9 +19,8 @@ export const askFinanceAssistant = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { streamText } = await import("ai");
     const { createAiProvider, AI_MODEL, AI_PROVIDER_OPTIONS } = await import("./ai-gateway.server");
-    const { buildFinanceContext, ASSISTANT_SYSTEM_PROMPT } = await import(
-      "./finance-context.server"
-    );
+    const { buildFinanceContext, ASSISTANT_SYSTEM_PROMPT } =
+      await import("./finance-context.server");
 
     try {
       const finance = await buildFinanceContext(context.supabase);
@@ -47,9 +46,8 @@ export const generateFinanceInsights = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { streamText } = await import("ai");
     const { createAiProvider, AI_MODEL, AI_PROVIDER_OPTIONS } = await import("./ai-gateway.server");
-    const { buildFinanceContext, ASSISTANT_SYSTEM_PROMPT } = await import(
-      "./finance-context.server"
-    );
+    const { buildFinanceContext, ASSISTANT_SYSTEM_PROMPT } =
+      await import("./finance-context.server");
 
     try {
       const finance = await buildFinanceContext(context.supabase);

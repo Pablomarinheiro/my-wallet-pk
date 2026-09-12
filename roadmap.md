@@ -1,10 +1,12 @@
 # My Wallet — Roadmap
 
 ## Concluído
+
 - Importação CSV com parser robusto + sugestões automáticas (tipo, categoria, conta, data)
 - Configurações: não alterar tema ao abrir a tela (tema padrão claro)
 
 ## Em andamento
+
 1. Cartão de crédito — compras parceladas
    - Tabela `card_purchases` + parcelas geradas por mês
    - Fatura calculada pelo ciclo de fechamento (remover campo "Usado" editável)
@@ -18,22 +20,26 @@
    - Alertas de 80% e 100% visíveis no dashboard
 
 ## Validação final
+
 - Compra parcelada recalcula fatura
 - Aporte de investimento atualiza rentabilidade
 - Estouro de orçamento exibe alerta no dashboard
 
 ## Acesso restrito (temporário)
+
 - Tabelas `app_settings` (singleton, `access_restricted` default true) e `allowed_emails`
 - Allowlist: pkdemoapp@gmail.com, pabloeduraimundo@gmail.com
 - Checagem no backend (função no banco + RLS), aplicada no login e-mail/senha, Google e cadastro
 - Liberar acesso no futuro = mudar `access_restricted` para false no banco, sem alterar código
 
 ## Otimização de carregamento
+
 - jsPDF/xlsx via import dinâmico (só ao exportar)
 - Chunk separado para recharts/d3
 - Cache-control immutable para /assets/**
 - Google Fonts não-bloqueante (media=print + onLoad)
 
 ## Melhorias visuais pontuais
+
 - Card de cartão com visual de cartão físico (gradiente, chip, bandeira)
 - Donut chart Receitas vs Despesas no Dashboard (percentual no centro)

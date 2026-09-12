@@ -35,18 +35,25 @@ function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
-      toast.error(error.message === "Invalid login credentials" ? "E-mail ou senha inválidos" : error.message);
+      toast.error(
+        error.message === "Invalid login credentials" ? "E-mail ou senha inválidos" : error.message,
+      );
       return;
     }
     const allowed = await ensureAccessAllowed();
     setLoading(false);
-    if (!allowed) { toast.error(ACCESS_RESTRICTED_MESSAGE); return; }
+    if (!allowed) {
+      toast.error(ACCESS_RESTRICTED_MESSAGE);
+      return;
+    }
     navigate({ to: "/dashboard", replace: true });
   }
 
   async function onGoogle() {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
     if (result.error) {
       setLoading(false);
       toast.error("Falha ao entrar com Google");
@@ -55,7 +62,10 @@ function LoginPage() {
     if (result.redirected) return;
     const allowed = await ensureAccessAllowed();
     setLoading(false);
-    if (!allowed) { toast.error(ACCESS_RESTRICTED_MESSAGE); return; }
+    if (!allowed) {
+      toast.error(ACCESS_RESTRICTED_MESSAGE);
+      return;
+    }
     navigate({ to: "/dashboard", replace: true });
   }
 
@@ -76,7 +86,8 @@ function LoginPage() {
             Controle total do seu dinheiro em um único painel.
           </h2>
           <p className="mt-4 text-sm text-white/80">
-            Contas, cartões, metas e orçamentos. Uma experiência minimalista e premium para você tomar decisões melhores todo mês.
+            Contas, cartões, metas e orçamentos. Uma experiência minimalista e premium para você
+            tomar decisões melhores todo mês.
           </p>
         </div>
         <div className="text-xs text-white/60">© 2026 My Wallet. Todos os direitos reservados.</div>
@@ -94,14 +105,24 @@ function LoginPage() {
           </div>
 
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Bem-vindo de volta</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">Acesse sua conta para continuar organizando suas finanças.</p>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Acesse sua conta para continuar organizando suas finanças.
+          </p>
 
           <form className="mt-8 space-y-4" onSubmit={onSubmit}>
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="email" type="email" required placeholder="voce@email.com" className="h-11 rounded-2xl pl-9" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  placeholder="voce@email.com"
+                  className="h-11 rounded-2xl pl-9"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
             </div>
 
@@ -111,8 +132,21 @@ function LoginPage() {
               </div>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="password" type={show ? "text" : "password"} required placeholder="••••••••" className="h-11 rounded-2xl px-9" value={password} onChange={(e) => setPassword(e.target.value)} />
-                <button type="button" onClick={() => setShow((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label={show ? "Ocultar senha" : "Mostrar senha"}>
+                <Input
+                  id="password"
+                  type={show ? "text" : "password"}
+                  required
+                  placeholder="••••••••"
+                  className="h-11 rounded-2xl px-9"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShow((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={show ? "Ocultar senha" : "Mostrar senha"}
+                >
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -122,18 +156,42 @@ function LoginPage() {
               <Checkbox defaultChecked /> Manter conectado por 30 dias
             </label>
 
-            <Button type="submit" disabled={loading} className="h-11 w-full rounded-2xl shadow-soft">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Entrar <ArrowRight className="h-4 w-4" /></>}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="h-11 w-full rounded-2xl shadow-soft"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  Entrar <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </Button>
 
-            <div className="relative py-2"><Separator /><span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-[11px] uppercase tracking-wider text-muted-foreground">ou</span></div>
+            <div className="relative py-2">
+              <Separator />
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+                ou
+              </span>
+            </div>
 
-            <Button type="button" variant="outline" className="h-11 w-full rounded-2xl" onClick={onGoogle} disabled={loading}>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full rounded-2xl"
+              onClick={onGoogle}
+              disabled={loading}
+            >
               Continuar com Google
             </Button>
 
             <p className="pt-2 text-center text-sm text-muted-foreground">
-              Não tem conta? <Link to="/cadastro" className="font-semibold text-primary hover:underline">Criar conta</Link>
+              Não tem conta?{" "}
+              <Link to="/cadastro" className="font-semibold text-primary hover:underline">
+                Criar conta
+              </Link>
             </p>
           </form>
         </div>

@@ -30,7 +30,10 @@ function RegisterPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 8) { toast.error("A senha precisa ter no mínimo 8 caracteres"); return; }
+    if (password.length < 8) {
+      toast.error("A senha precisa ter no mínimo 8 caracteres");
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -40,20 +43,35 @@ function RegisterPage() {
         data: { full_name: name },
       },
     });
-    if (error) { setLoading(false); toast.error(error.message); return; }
+    if (error) {
+      setLoading(false);
+      toast.error(error.message);
+      return;
+    }
     const allowed = await ensureAccessAllowed();
     setLoading(false);
-    if (!allowed) { toast.error(ACCESS_RESTRICTED_MESSAGE); return; }
+    if (!allowed) {
+      toast.error(ACCESS_RESTRICTED_MESSAGE);
+      return;
+    }
     toast.success("Conta criada! Você já pode acessar.");
     navigate({ to: "/dashboard", replace: true });
   }
 
   async function onGoogle() {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) { toast.error("Falha ao entrar com Google"); return; }
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      toast.error("Falha ao entrar com Google");
+      return;
+    }
     if (result.redirected) return;
     const allowed = await ensureAccessAllowed();
-    if (!allowed) { toast.error(ACCESS_RESTRICTED_MESSAGE); return; }
+    if (!allowed) {
+      toast.error(ACCESS_RESTRICTED_MESSAGE);
+      return;
+    }
     navigate({ to: "/dashboard", replace: true });
   }
 
@@ -68,46 +86,95 @@ function RegisterPage() {
         </div>
 
         <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Crie sua conta grátis</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">Comece a controlar suas finanças em menos de 2 minutos.</p>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Comece a controlar suas finanças em menos de 2 minutos.
+        </p>
 
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>
           <div className="space-y-1.5">
             <Label htmlFor="name">Nome completo</Label>
             <div className="relative">
               <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input id="name" required placeholder="Seu nome" className="h-11 rounded-2xl pl-9" value={name} onChange={(e) => setName(e.target.value)} />
+              <Input
+                id="name"
+                required
+                placeholder="Seu nome"
+                className="h-11 rounded-2xl pl-9"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input id="email" type="email" required placeholder="voce@email.com" className="h-11 rounded-2xl pl-9" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input
+                id="email"
+                type="email"
+                required
+                placeholder="voce@email.com"
+                className="h-11 rounded-2xl pl-9"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="password">Senha</Label>
             <div className="relative">
               <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input id="password" type="password" required placeholder="Mínimo 8 caracteres" className="h-11 rounded-2xl pl-9" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input
+                id="password"
+                type="password"
+                required
+                placeholder="Mínimo 8 caracteres"
+                className="h-11 rounded-2xl pl-9"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
           </div>
 
           <label className="flex items-start gap-2 text-xs text-muted-foreground">
             <Checkbox defaultChecked className="mt-0.5" />
-            <span>Concordo com os <a className="text-primary hover:underline" href="#">Termos</a> e <a className="text-primary hover:underline" href="#">Política de Privacidade</a>.</span>
+            <span>
+              Concordo com os{" "}
+              <a className="text-primary hover:underline" href="#">
+                Termos
+              </a>{" "}
+              e{" "}
+              <a className="text-primary hover:underline" href="#">
+                Política de Privacidade
+              </a>
+              .
+            </span>
           </label>
 
           <Button type="submit" disabled={loading} className="h-11 w-full rounded-2xl shadow-soft">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Criar conta <ArrowRight className="h-4 w-4" /></>}
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                Criar conta <ArrowRight className="h-4 w-4" />
+              </>
+            )}
           </Button>
 
-          <Button type="button" variant="outline" className="h-11 w-full rounded-2xl" onClick={onGoogle}>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full rounded-2xl"
+            onClick={onGoogle}
+          >
             Continuar com Google
           </Button>
 
           <p className="pt-2 text-center text-sm text-muted-foreground">
-            Já tem uma conta? <Link to="/login" className="font-semibold text-primary hover:underline">Entrar</Link>
+            Já tem uma conta?{" "}
+            <Link to="/login" className="font-semibold text-primary hover:underline">
+              Entrar
+            </Link>
           </p>
         </form>
       </div>

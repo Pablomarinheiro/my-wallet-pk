@@ -38,7 +38,11 @@ export function exportCSV(rows: ExportRow[], filename: string) {
   triggerDownload(blob, `${filename}.csv`);
 }
 
-export async function exportExcel(rows: ExportRow[], filename: string, summary?: Record<string, number>) {
+export async function exportExcel(
+  rows: ExportRow[],
+  filename: string,
+  summary?: Record<string, number>,
+) {
   const XLSX = await import("xlsx");
   const wb = XLSX.utils.book_new();
 
@@ -52,7 +56,15 @@ export async function exportExcel(rows: ExportRow[], filename: string, summary?:
     Valor: Number(r.amount),
   }));
   const ws = XLSX.utils.json_to_sheet(data);
-  ws["!cols"] = [{ wch: 12 }, { wch: 32 }, { wch: 18 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 14 }];
+  ws["!cols"] = [
+    { wch: 12 },
+    { wch: 32 },
+    { wch: 18 },
+    { wch: 18 },
+    { wch: 12 },
+    { wch: 12 },
+    { wch: 14 },
+  ];
   XLSX.utils.book_append_sheet(wb, ws, "Transações");
 
   if (summary) {
@@ -86,7 +98,9 @@ export async function exportPDF(
   doc.setFontSize(10);
   doc.setTextColor(100, 116, 139);
   doc.text(meta.period, 40, 66);
-  doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, pageWidth - 40, 66, { align: "right" });
+  doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, pageWidth - 40, 66, {
+    align: "right",
+  });
 
   let y = 90;
   if (meta.summary) {

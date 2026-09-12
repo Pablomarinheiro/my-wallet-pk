@@ -12,8 +12,16 @@ export type GoalRow = Tables<"goals">;
 export type BudgetRow = Tables<"budgets">;
 
 type TableName =
-  | "accounts" | "cards" | "categories" | "transactions" | "goals" | "budgets"
-  | "card_purchases" | "card_installments" | "investments" | "investment_transactions";
+  | "accounts"
+  | "cards"
+  | "categories"
+  | "transactions"
+  | "goals"
+  | "budgets"
+  | "card_purchases"
+  | "card_installments"
+  | "investments"
+  | "investment_transactions";
 
 function useRealtime(table: TableName, userId: string | undefined) {
   const qc = useQueryClient();
@@ -58,7 +66,10 @@ export function useUpsertAccount() {
       if (!user) throw new Error("Não autenticado");
       const row = { ...input, user_id: user.id } as TablesInsert<"accounts">;
       const { error } = input.id
-        ? await supabase.from("accounts").update(row as TablesUpdate<"accounts">).eq("id", input.id)
+        ? await supabase
+            .from("accounts")
+            .update(row as TablesUpdate<"accounts">)
+            .eq("id", input.id)
         : await supabase.from("accounts").insert(row);
       if (error) throw error;
     },
@@ -99,7 +110,10 @@ export function useUpsertCard() {
       if (!user) throw new Error("Não autenticado");
       const row = { ...input, user_id: user.id } as TablesInsert<"cards">;
       const { error } = input.id
-        ? await supabase.from("cards").update(row as TablesUpdate<"cards">).eq("id", input.id)
+        ? await supabase
+            .from("cards")
+            .update(row as TablesUpdate<"cards">)
+            .eq("id", input.id)
         : await supabase.from("cards").insert(row);
       if (error) throw error;
     },
@@ -140,7 +154,10 @@ export function useUpsertCategory() {
       if (!user) throw new Error("Não autenticado");
       const row = { ...input, user_id: user.id } as TablesInsert<"categories">;
       const { error } = input.id
-        ? await supabase.from("categories").update(row as TablesUpdate<"categories">).eq("id", input.id)
+        ? await supabase
+            .from("categories")
+            .update(row as TablesUpdate<"categories">)
+            .eq("id", input.id)
         : await supabase.from("categories").insert(row);
       if (error) throw error;
     },
@@ -192,7 +209,10 @@ export function useUpsertTransaction() {
       if (!user) throw new Error("Não autenticado");
       const row = { ...input, user_id: user.id } as TablesInsert<"transactions">;
       const { error } = input.id
-        ? await supabase.from("transactions").update(row as TablesUpdate<"transactions">).eq("id", input.id)
+        ? await supabase
+            .from("transactions")
+            .update(row as TablesUpdate<"transactions">)
+            .eq("id", input.id)
         : await supabase.from("transactions").insert(row);
       if (error) throw error;
     },
@@ -217,7 +237,6 @@ export function useDeleteTransaction() {
   });
 }
 
-
 // ---------- GOALS ----------
 export function useGoals() {
   const { user } = useAuth();
@@ -240,7 +259,10 @@ export function useUpsertGoal() {
       if (!user) throw new Error("Não autenticado");
       const row = { ...input, user_id: user.id } as TablesInsert<"goals">;
       const { error } = input.id
-        ? await supabase.from("goals").update(row as TablesUpdate<"goals">).eq("id", input.id)
+        ? await supabase
+            .from("goals")
+            .update(row as TablesUpdate<"goals">)
+            .eq("id", input.id)
         : await supabase.from("goals").insert(row);
       if (error) throw error;
     },
@@ -281,7 +303,10 @@ export function useUpsertBudget() {
       if (!user) throw new Error("Não autenticado");
       const row = { ...input, user_id: user.id } as TablesInsert<"budgets">;
       const { error } = input.id
-        ? await supabase.from("budgets").update(row as TablesUpdate<"budgets">).eq("id", input.id)
+        ? await supabase
+            .from("budgets")
+            .update(row as TablesUpdate<"budgets">)
+            .eq("id", input.id)
         : await supabase.from("budgets").insert(row);
       if (error) throw error;
     },
@@ -333,7 +358,10 @@ export function useCardInstallments() {
     queryKey: ["card_installments", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("card_installments").select("*").order("due_date");
+      const { data, error } = await supabase
+        .from("card_installments")
+        .select("*")
+        .order("due_date");
       if (error) throw error;
       return (data ?? []) as CardInstallmentRow[];
     },
@@ -348,7 +376,10 @@ export function useUpsertCardPurchase() {
       if (!user) throw new Error("Não autenticado");
       const row = { ...input, user_id: user.id } as TablesInsert<"card_purchases">;
       const { error } = input.id
-        ? await supabase.from("card_purchases").update(row as TablesUpdate<"card_purchases">).eq("id", input.id)
+        ? await supabase
+            .from("card_purchases")
+            .update(row as TablesUpdate<"card_purchases">)
+            .eq("id", input.id)
         : await supabase.from("card_purchases").insert(row);
       if (error) throw error;
     },
@@ -399,7 +430,10 @@ export function useInvestmentTransactions(investmentId?: string) {
     queryKey: ["investment_transactions", user?.id, investmentId ?? "all"],
     enabled: !!user,
     queryFn: async () => {
-      let q = supabase.from("investment_transactions").select("*").order("date", { ascending: false });
+      let q = supabase
+        .from("investment_transactions")
+        .select("*")
+        .order("date", { ascending: false });
       if (investmentId) q = q.eq("investment_id", investmentId);
       const { data, error } = await q;
       if (error) throw error;
@@ -416,7 +450,10 @@ export function useUpsertInvestment() {
       if (!user) throw new Error("Não autenticado");
       const row = { ...input, user_id: user.id } as TablesInsert<"investments">;
       const { error } = input.id
-        ? await supabase.from("investments").update(row as TablesUpdate<"investments">).eq("id", input.id)
+        ? await supabase
+            .from("investments")
+            .update(row as TablesUpdate<"investments">)
+            .eq("id", input.id)
         : await supabase.from("investments").insert(row);
       if (error) throw error;
     },
@@ -442,25 +479,37 @@ export function useAddInvestmentTx() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: {
-      investment_id: string; kind: "deposit" | "withdraw"; amount: number; quantity?: number; date: string;
+      investment_id: string;
+      kind: "deposit" | "withdraw";
+      amount: number;
+      quantity?: number;
+      date: string;
     }) => {
       if (!user) throw new Error("Não autenticado");
       const { error } = await supabase.from("investment_transactions").insert({
-        ...input, user_id: user.id, quantity: input.quantity ?? 0,
+        ...input,
+        user_id: user.id,
+        quantity: input.quantity ?? 0,
       } as TablesInsert<"investment_transactions">);
       if (error) throw error;
 
       const { data: inv } = await supabase
-        .from("investments").select("quantity, avg_price, current_value").eq("id", input.investment_id).single();
+        .from("investments")
+        .select("quantity, avg_price, current_value")
+        .eq("id", input.investment_id)
+        .single();
       if (inv) {
         const sign = input.kind === "deposit" ? 1 : -1;
         const qty = Number(inv.quantity) + sign * (input.quantity ?? 0);
         const invested = Number(inv.avg_price) * Number(inv.quantity) + sign * input.amount;
-        await supabase.from("investments").update({
-          quantity: Math.max(qty, 0),
-          avg_price: qty > 0 ? Math.max(invested, 0) / qty : 0,
-          current_value: Math.max(Number(inv.current_value) + sign * input.amount, 0),
-        }).eq("id", input.investment_id);
+        await supabase
+          .from("investments")
+          .update({
+            quantity: Math.max(qty, 0),
+            avg_price: qty > 0 ? Math.max(invested, 0) / qty : 0,
+            current_value: Math.max(Number(inv.current_value) + sign * input.amount, 0),
+          })
+          .eq("id", input.investment_id);
       }
     },
     onSuccess: () => {
@@ -475,5 +524,10 @@ export function usePortfolioTotals() {
   const { data: investments = [] } = useInvestments();
   const invested = investments.reduce((s, i) => s + Number(i.avg_price) * Number(i.quantity), 0);
   const current = investments.reduce((s, i) => s + Number(i.current_value), 0);
-  return { invested, current, profit: current - invested, percent: invested > 0 ? ((current - invested) / invested) * 100 : 0 };
+  return {
+    invested,
+    current,
+    profit: current - invested,
+    percent: invested > 0 ? ((current - invested) / invested) * 100 : 0,
+  };
 }

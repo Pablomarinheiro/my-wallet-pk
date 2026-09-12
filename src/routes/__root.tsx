@@ -101,10 +101,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "My Wallet — Gestão financeira pessoal" },
-      { name: "description", content: "My Wallet: SaaS moderno e minimalista para gestão financeira pessoal — contas, cartões, metas, orçamento e relatórios em um só lugar." },
+      {
+        name: "description",
+        content:
+          "My Wallet: SaaS moderno e minimalista para gestão financeira pessoal — contas, cartões, metas, orçamento e relatórios em um só lugar.",
+      },
       { name: "author", content: "My Wallet" },
       { property: "og:title", content: "My Wallet — Gestão financeira pessoal" },
-      { property: "og:description", content: "Controle contas, cartões, metas e orçamentos com uma experiência premium e minimalista." },
+      {
+        property: "og:description",
+        content:
+          "Controle contas, cartões, metas e orçamentos com uma experiência premium e minimalista.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

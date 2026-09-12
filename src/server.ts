@@ -67,7 +67,10 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(withImmutableAssetCache(response, request), request);
+      return await normalizeCatastrophicSsrResponse(
+        withImmutableAssetCache(response, request),
+        request,
+      );
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {

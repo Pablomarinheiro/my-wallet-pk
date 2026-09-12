@@ -1,8 +1,26 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Wallet, CreditCard, ArrowDownCircle, ArrowUpCircle,
-  ArrowLeftRight, Tags, Target, PiggyBank, FileBarChart, User, Settings,
-  Search, Bell, Menu, LogOut, ChevronRight, Plus, Sparkles, LineChart,
+  LayoutDashboard,
+  Wallet,
+  CreditCard,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  ArrowLeftRight,
+  Tags,
+  Target,
+  PiggyBank,
+  FileBarChart,
+  User,
+  Settings,
+  Search,
+  Bell,
+  Menu,
+  LogOut,
+  ChevronRight,
+  Plus,
+  Sparkles,
+  LineChart,
+  type LucideIcon,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -10,8 +28,12 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -69,7 +91,6 @@ export function NewTransactionMenu({ className }: { className?: string }) {
 }
 
 function Logo({ collapsed = false }: { collapsed?: boolean }) {
-
   return (
     <Link to="/dashboard" className="flex items-center gap-2.5">
       <div className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
@@ -77,7 +98,9 @@ function Logo({ collapsed = false }: { collapsed?: boolean }) {
       </div>
       {!collapsed && (
         <div className="min-w-0">
-          <div className="text-[15px] font-bold leading-tight tracking-tight text-foreground">My Wallet</div>
+          <div className="text-[15px] font-bold leading-tight tracking-tight text-foreground">
+            My Wallet
+          </div>
           <div className="text-[11px] leading-tight text-muted-foreground">Finanças pessoais</div>
         </div>
       )}
@@ -86,8 +109,18 @@ function Logo({ collapsed = false }: { collapsed?: boolean }) {
 }
 
 function NavItem({
-  to, label, icon: Icon, active, collapsed,
-}: { to: string; label: string; icon: any; active: boolean; collapsed: boolean }) {
+  to,
+  label,
+  icon: Icon,
+  active,
+  collapsed,
+}: {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  collapsed: boolean;
+}) {
   return (
     <Link
       to={to}
@@ -100,7 +133,9 @@ function NavItem({
     >
       <Icon className="h-[18px] w-[18px] shrink-0" />
       {!collapsed && <span className="truncate">{label}</span>}
-      {!collapsed && active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-foreground/80" />}
+      {!collapsed && active && (
+        <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-foreground/80" />
+      )}
     </Link>
   );
 }
@@ -115,16 +150,33 @@ function SidebarInner({ collapsed, pathname }: { collapsed: boolean; pathname: s
       {!collapsed && <NewTransactionMenu className="w-full" />}
 
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
-        {!collapsed && <div className="px-2 pt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Menu</div>}
+        {!collapsed && (
+          <div className="px-2 pt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Menu
+          </div>
+        )}
         {nav.map((item) => (
-          <NavItem key={item.to} {...item} active={pathname.startsWith(item.to)} collapsed={collapsed} />
+          <NavItem
+            key={item.to}
+            {...item}
+            active={pathname.startsWith(item.to)}
+            collapsed={collapsed}
+          />
         ))}
-        {!collapsed && <div className="mt-4 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Conta</div>}
+        {!collapsed && (
+          <div className="mt-4 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Conta
+          </div>
+        )}
         {bottomNav.map((item) => (
-          <NavItem key={item.to} {...item} active={pathname.startsWith(item.to)} collapsed={collapsed} />
+          <NavItem
+            key={item.to}
+            {...item}
+            active={pathname.startsWith(item.to)}
+            collapsed={collapsed}
+          />
         ))}
       </nav>
-
     </div>
   );
 }
@@ -132,18 +184,35 @@ function SidebarInner({ collapsed, pathname }: { collapsed: boolean; pathname: s
 function Breadcrumbs({ pathname }: { pathname: string }) {
   const segments = pathname.split("/").filter(Boolean);
   const labels: Record<string, string> = {
-    dashboard: "Dashboard", contas: "Contas", cartoes: "Cartões", investimentos: "Investimentos",
-    receitas: "Receitas", despesas: "Despesas", transferencias: "Transferências",
-    categorias: "Categorias", metas: "Metas", orcamento: "Orçamento",
-    relatorios: "Relatórios", assistente: "Assistente IA", perfil: "Perfil", configuracoes: "Configurações",
+    dashboard: "Dashboard",
+    contas: "Contas",
+    cartoes: "Cartões",
+    investimentos: "Investimentos",
+    receitas: "Receitas",
+    despesas: "Despesas",
+    transferencias: "Transferências",
+    categorias: "Categorias",
+    metas: "Metas",
+    orcamento: "Orçamento",
+    relatorios: "Relatórios",
+    assistente: "Assistente IA",
+    perfil: "Perfil",
+    configuracoes: "Configurações",
   };
   return (
     <nav className="hidden items-center gap-1.5 text-sm md:flex">
-      <Link to="/dashboard" className="text-muted-foreground hover:text-foreground">My Wallet</Link>
+      <Link to="/dashboard" className="text-muted-foreground hover:text-foreground">
+        My Wallet
+      </Link>
       {segments.map((s, i) => (
         <span key={s} className="flex items-center gap-1.5">
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
-          <span className={cn("capitalize", i === segments.length - 1 ? "font-medium text-foreground" : "text-muted-foreground")}>
+          <span
+            className={cn(
+              "capitalize",
+              i === segments.length - 1 ? "font-medium text-foreground" : "text-muted-foreground",
+            )}
+          >
             {labels[s] ?? s}
           </span>
         </span>
@@ -159,7 +228,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, signOut, displayName: identityName } = useAuth();
   const navigate = useNavigate();
   const displayName = identityName || user?.email?.split("@")[0] || "Usuário";
-  const initials = displayName.split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
+  const initials = displayName
+    .split(" ")
+    .map((s) => s[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   const handleSignOut = async () => {
     await signOut();
@@ -178,7 +252,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <SidebarInner collapsed={collapsed} pathname={pathname} />
       </aside>
 
-      <div className={cn("transition-all duration-300", collapsed ? "lg:pl-[84px]" : "lg:pl-[268px]")}>
+      <div
+        className={cn("transition-all duration-300", collapsed ? "lg:pl-[84px]" : "lg:pl-[268px]")}
+      >
         {/* Header */}
         <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur">
           <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 md:px-6 md:py-4">
@@ -216,30 +292,55 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             <div className="flex items-center gap-1.5">
-              <Button variant="ghost" size="icon" className="relative rounded-2xl" aria-label="Notificações">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative rounded-2xl"
+                aria-label="Notificações"
+              >
                 <Bell className="h-5 w-5" />
                 <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-accent" aria-label="Menu do usuário">
+                  <button
+                    className="flex items-center gap-2 rounded-2xl px-2 py-1 transition-colors hover:bg-accent"
+                    aria-label="Menu do usuário"
+                  >
                     <Avatar className="h-9 w-9">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">{initials}</AvatarFallback>
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+                        {initials}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="hidden text-left md:block">
-                      <div className="text-[13px] font-semibold leading-tight text-foreground truncate max-w-[160px]">{displayName}</div>
-                      <div className="text-[11px] leading-tight text-muted-foreground truncate max-w-[160px]">{user?.email}</div>
+                      <div className="text-[13px] font-semibold leading-tight text-foreground truncate max-w-[160px]">
+                        {displayName}
+                      </div>
+                      <div className="text-[11px] leading-tight text-muted-foreground truncate max-w-[160px]">
+                        {user?.email}
+                      </div>
                     </div>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 rounded-2xl">
                   <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild><Link to="/perfil"><User className="h-4 w-4" />Perfil</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link to="/configuracoes"><Settings className="h-4 w-4" />Configurações</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/perfil">
+                      <User className="h-4 w-4" />
+                      Perfil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/configuracoes">
+                      <Settings className="h-4 w-4" />
+                      Configurações
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-destructive" onSelect={handleSignOut}>
-                    <LogOut className="h-4 w-4" />Sair
+                    <LogOut className="h-4 w-4" />
+                    Sair
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -247,22 +348,37 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8">
-          {children}
-        </main>
+        <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8">{children}</main>
       </div>
     </div>
   );
 }
 
 export function PageHeader({
-  title, description, actions, badge,
-}: { title: string; description?: string; actions?: ReactNode; badge?: ReactNode }) {
+  title,
+  description,
+  actions,
+  badge,
+}: {
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+  badge?: ReactNode;
+}) {
   return (
     <div className="mb-6 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4 sm:flex sm:flex-wrap sm:justify-between">
       <div className="min-w-0">
-        {badge && <Badge variant="secondary" className="mb-2 rounded-full bg-primary/10 text-primary hover:bg-primary/10">{badge}</Badge>}
-        <h1 className="truncate text-2xl font-bold tracking-tight text-foreground md:text-3xl">{title}</h1>
+        {badge && (
+          <Badge
+            variant="secondary"
+            className="mb-2 rounded-full bg-primary/10 text-primary hover:bg-primary/10"
+          >
+            {badge}
+          </Badge>
+        )}
+        <h1 className="truncate text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+          {title}
+        </h1>
         {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}

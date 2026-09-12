@@ -17,7 +17,10 @@ export const Route = createFileRoute("/_app/perfil")({
       { title: "Perfil — My Wallet" },
       { name: "description", content: "Atualize seu nome, foto e senha da conta My Wallet." },
       { property: "og:title", content: "Perfil — My Wallet" },
-      { property: "og:description", content: "Atualize seu nome, foto e senha da conta My Wallet." },
+      {
+        property: "og:description",
+        content: "Atualize seu nome, foto e senha da conta My Wallet.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -62,14 +65,17 @@ function PerfilPage() {
         // Descarta qualquer linha que não pertença ao usuário logado.
         const row = data && data.id === currentId ? data : null;
         setFullName(row?.full_name || identityName);
-        setAvatarUrl(isOAuthIdentity ? identityAvatar || row?.avatar_url || "" : row?.avatar_url || identityAvatar);
+        setAvatarUrl(
+          isOAuthIdentity
+            ? identityAvatar || row?.avatar_url || ""
+            : row?.avatar_url || identityAvatar,
+        );
         setLoaded(true);
       });
     return () => {
       active = false;
     };
   }, [user?.id, identityName, identityAvatar, isOAuthIdentity]);
-
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -89,7 +95,6 @@ function PerfilPage() {
     if (error) toast.error(error.message);
     else toast.success("Perfil atualizado");
   }
-
 
   async function savePassword(e: React.FormEvent) {
     e.preventDefault();
@@ -124,23 +129,48 @@ function PerfilPage() {
 
         <div className="space-y-4">
           <Card className="rounded-3xl border-border/70 shadow-soft">
-            <CardHeader><CardTitle className="text-base">Informações pessoais</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base">Informações pessoais</CardTitle>
+            </CardHeader>
             <CardContent>
               <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={saveProfile}>
                 <div className="space-y-1.5 md:col-span-2">
                   <Label htmlFor="fullName">Nome completo</Label>
-                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={!loaded} className="h-11 rounded-2xl" />
+                  <Input
+                    id="fullName"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    disabled={!loaded}
+                    className="h-11 rounded-2xl"
+                  />
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={email} readOnly disabled className="h-11 rounded-2xl" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    readOnly
+                    disabled
+                    className="h-11 rounded-2xl"
+                  />
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <Label htmlFor="avatar">URL da foto</Label>
-                  <Input id="avatar" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://..." className="h-11 rounded-2xl" />
+                  <Input
+                    id="avatar"
+                    value={avatarUrl}
+                    onChange={(e) => setAvatarUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="h-11 rounded-2xl"
+                  />
                 </div>
                 <div className="md:col-span-2 flex justify-end">
-                  <Button type="submit" disabled={saving || !loaded} className="rounded-2xl shadow-soft">
+                  <Button
+                    type="submit"
+                    disabled={saving || !loaded}
+                    className="rounded-2xl shadow-soft"
+                  >
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar alterações"}
                   </Button>
                 </div>
@@ -149,11 +179,29 @@ function PerfilPage() {
           </Card>
 
           <Card className="rounded-3xl border-border/70 shadow-soft">
-            <CardHeader><CardTitle className="text-base">Segurança da conta</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base">Segurança da conta</CardTitle>
+            </CardHeader>
             <CardContent>
               <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={savePassword}>
-                <div className="space-y-1.5"><Label>Nova senha</Label><Input type="password" value={pwd} onChange={(e) => setPwd(e.target.value)} className="h-11 rounded-2xl" /></div>
-                <div className="space-y-1.5"><Label>Confirmar senha</Label><Input type="password" value={pwd2} onChange={(e) => setPwd2(e.target.value)} className="h-11 rounded-2xl" /></div>
+                <div className="space-y-1.5">
+                  <Label>Nova senha</Label>
+                  <Input
+                    type="password"
+                    value={pwd}
+                    onChange={(e) => setPwd(e.target.value)}
+                    className="h-11 rounded-2xl"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Confirmar senha</Label>
+                  <Input
+                    type="password"
+                    value={pwd2}
+                    onChange={(e) => setPwd2(e.target.value)}
+                    className="h-11 rounded-2xl"
+                  />
+                </div>
                 <div className="md:col-span-2 flex justify-end">
                   <Button type="submit" disabled={savingPwd} className="rounded-2xl shadow-soft">
                     {savingPwd ? <Loader2 className="h-4 w-4 animate-spin" /> : "Atualizar senha"}

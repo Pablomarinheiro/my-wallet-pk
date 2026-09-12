@@ -9,20 +9,43 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { UploadCloud, FileSpreadsheet, Loader2, Download, X } from "lucide-react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import { currency } from "@/lib/format";
 import {
-  guessColumn, inferColumns, normalizeName, parseAmount, parseCsv, parseDate, parseType, suggestCategory,
+  guessColumn,
+  inferColumns,
+  normalizeName,
+  parseAmount,
+  parseCsv,
+  parseDate,
+  parseType,
+  suggestCategory,
 } from "@/lib/csv-import";
 
-
-type Mapping = { date: string; description: string; amount: string; type: string; category: string; account: string };
+type Mapping = {
+  date: string;
+  description: string;
+  amount: string;
+  type: string;
+  category: string;
+  account: string;
+};
 
 const NONE = "none";
 
@@ -41,7 +64,14 @@ export function CsvImport() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([]);
-  const [map, setMap] = useState<Mapping>({ date: NONE, description: NONE, amount: NONE, type: NONE, category: NONE, account: NONE });
+  const [map, setMap] = useState<Mapping>({
+    date: NONE,
+    description: NONE,
+    amount: NONE,
+    type: NONE,
+    category: NONE,
+    account: NONE,
+  });
   const [defaultAccount, setDefaultAccount] = useState<string>(NONE);
   const [createCategories, setCreateCategories] = useState(true);
   const [smartFill, setSmartFill] = useState(true);
@@ -50,16 +80,54 @@ export function CsvImport() {
 
   function loadText(name: string, text: string) {
     const { headers: h, rows: r } = parseCsv(text);
-    if (h.length === 0 || r.length === 0) { toast.error("Arquivo CSV vazio ou inválido"); return; }
+    if (h.length === 0 || r.length === 0) {
+      toast.error("Arquivo CSV vazio ou inválido");
+      return;
+    }
     setFileName(name);
     setHeaders(h);
     setRows(r);
     const guessed = {
-      date: guessColumn(h, ["data", "date", "data da compra", "data lançamento", "dt", "vencimento", "competencia"]),
-      description: guessColumn(h, ["descrição", "description", "histórico", "historico", "lançamento", "lancamento", "titulo", "título", "detalhe", "memo", "estabelecimento"]),
-      amount: guessColumn(h, ["valor", "amount", "value", "montante", "total", "r$", "credito", "debito"]),
+      date: guessColumn(h, [
+        "data",
+        "date",
+        "data da compra",
+        "data lançamento",
+        "dt",
+        "vencimento",
+        "competencia",
+      ]),
+      description: guessColumn(h, [
+        "descrição",
+        "description",
+        "histórico",
+        "historico",
+        "lançamento",
+        "lancamento",
+        "titulo",
+        "título",
+        "detalhe",
+        "memo",
+        "estabelecimento",
+      ]),
+      amount: guessColumn(h, [
+        "valor",
+        "amount",
+        "value",
+        "montante",
+        "total",
+        "r$",
+        "credito",
+        "debito",
+      ]),
       type: guessColumn(h, ["tipo", "type", "natureza", "operacao", "operação", "entrada/saida"]),
-      category: guessColumn(h, ["categoria", "category", "classificacao", "classificação", "grupo"]),
+      category: guessColumn(h, [
+        "categoria",
+        "category",
+        "classificacao",
+        "classificação",
+        "grupo",
+      ]),
       account: guessColumn(h, ["conta", "account", "banco", "carteira", "cartao", "cartão"]),
     };
     const inferred = inferColumns(r, h.length);
@@ -84,7 +152,6 @@ export function CsvImport() {
     reader.readAsArrayBuffer(file);
   }
 
-
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (f) readFile(f);
@@ -107,7 +174,11 @@ export function CsvImport() {
     if (rows.length === 0) return [];
     const idx = (k: keyof Mapping) => (map[k] === NONE ? -1 : Number(map[k]));
     const fallbackAccountId =
-      defaultAccount !== NONE ? defaultAccount : smartFill && accounts.length === 1 ? accounts[0]!.id : null;
+      defaultAccount !== NONE
+        ? defaultAccount
+        : smartFill && accounts.length === 1
+          ? accounts[0]!.id
+          : null;
     let lastDate: string | null = null;
 
     return rows.map((r, i) => {
@@ -136,10 +207,13 @@ export function CsvImport() {
       }
 
       let catName = cell("category");
-      if (!catName && hint) { catName = hint.name; suggestions.push("categoria sugerida"); }
+      if (!catName && hint) {
+        catName = hint.name;
+        suggestions.push("categoria sugerida");
+      }
 
       const accName = cell("account");
-      let accountId = accName ? accountByName.get(normalizeName(accName)) ?? null : null;
+      let accountId = accName ? (accountByName.get(normalizeName(accName)) ?? null) : null;
       if (!accountId && fallbackAccountId) {
         accountId = fallbackAccountId;
         if (accName || defaultAccount === NONE) suggestions.push("conta sugerida");
@@ -151,8 +225,15 @@ export function CsvImport() {
 
       return {
         line: i + 2,
-        date, description, amount: amount === null ? null : Math.abs(amount),
-        type, catName, accName, accountId, errors, suggestions,
+        date,
+        description,
+        amount: amount === null ? null : Math.abs(amount),
+        type,
+        catName,
+        accName,
+        accountId,
+        errors,
+        suggestions,
       };
     });
   }, [rows, map, accountByName, accounts, defaultAccount, smartFill]);
@@ -161,10 +242,15 @@ export function CsvImport() {
   const invalid = parsed.length - valid.length;
   const suggestedCount = valid.filter((p) => p.suggestions.some((s) => s !== "sem conta")).length;
 
-
   async function runImport() {
-    if (!user) { toast.error("Não autenticado"); return; }
-    if (valid.length === 0) { toast.error("Nenhuma linha válida para importar"); return; }
+    if (!user) {
+      toast.error("Não autenticado");
+      return;
+    }
+    if (valid.length === 0) {
+      toast.error("Nenhuma linha válida para importar");
+      return;
+    }
     setImporting(true);
     try {
       const catMap = new Map(categoryByName);
@@ -182,7 +268,10 @@ export function CsvImport() {
             name: valid.find((p) => normalizeName(p.catName) === key)?.catName ?? key,
             type,
           }));
-          const { data, error } = await supabase.from("categories").insert(toCreate).select("id, name, type");
+          const { data, error } = await supabase
+            .from("categories")
+            .insert(toCreate)
+            .select("id, name, type");
           if (error) throw error;
           for (const c of data ?? []) catMap.set(normalizeName(c.name), { id: c.id, type: c.type });
         }
@@ -196,7 +285,7 @@ export function CsvImport() {
         type: p.type,
         status: "confirmed",
         date: p.date as string,
-        category_id: p.catName ? catMap.get(normalizeName(p.catName))?.id ?? null : null,
+        category_id: p.catName ? (catMap.get(normalizeName(p.catName))?.id ?? null) : null,
         account_id: p.accountId ?? fallbackAccount,
       }));
 
@@ -210,24 +299,36 @@ export function CsvImport() {
       await qc.invalidateQueries({ queryKey: ["categories"] });
       toast.success(`${payload.length} transação(ões) importada(s)`);
       reset();
-    } catch (e: any) {
-      toast.error(e.message ?? "Falha ao importar");
+    } catch (e) {
+      toast.error(getErrorMessage(e, "Falha ao importar"));
     } finally {
       setImporting(false);
     }
   }
 
   function reset() {
-    setFileName(null); setHeaders([]); setRows([]);
-    setMap({ date: NONE, description: NONE, amount: NONE, type: NONE, category: NONE, account: NONE });
+    setFileName(null);
+    setHeaders([]);
+    setRows([]);
+    setMap({
+      date: NONE,
+      description: NONE,
+      amount: NONE,
+      type: NONE,
+      category: NONE,
+      account: NONE,
+    });
   }
 
   function downloadTemplate() {
     const blob = new Blob(["\uFEFF" + TEMPLATE], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "modelo-importacao-my-wallet.csv";
-    document.body.appendChild(a); a.click(); a.remove();
+    a.href = url;
+    a.download = "modelo-importacao-my-wallet.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     URL.revokeObjectURL(url);
   }
 
@@ -251,31 +352,49 @@ export function CsvImport() {
         </CardHeader>
         <CardContent>
           <div
-            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
             onDragLeave={() => setDragging(false)}
             onDrop={(e) => {
-              e.preventDefault(); setDragging(false);
+              e.preventDefault();
+              setDragging(false);
               const f = e.dataTransfer.files?.[0];
               if (f) readFile(f);
             }}
             onClick={() => inputRef.current?.click()}
             className={`grid cursor-pointer place-items-center gap-2 rounded-2xl border-2 border-dashed p-8 text-center transition-colors ${
-              dragging ? "border-primary bg-primary/5" : "border-border/70 hover:border-primary/40 hover:bg-primary/5"
+              dragging
+                ? "border-primary bg-primary/5"
+                : "border-border/70 hover:border-primary/40 hover:bg-primary/5"
             }`}
           >
             <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
               <UploadCloud className="h-6 w-6" />
             </div>
-            <div className="text-sm font-semibold">Arraste um arquivo .csv ou clique para selecionar</div>
-            <div className="text-xs text-muted-foreground">Separadores aceitos: ponto e vírgula, vírgula ou tabulação</div>
-            <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={onPick} />
+            <div className="text-sm font-semibold">
+              Arraste um arquivo .csv ou clique para selecionar
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Separadores aceitos: ponto e vírgula, vírgula ou tabulação
+            </div>
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={onPick}
+            />
           </div>
 
           {fileName && (
             <div className="mt-3 flex items-center gap-2 rounded-2xl bg-muted/60 px-3 py-2 text-sm">
               <FileSpreadsheet className="h-4 w-4 text-primary" />
               <span className="min-w-0 flex-1 truncate font-medium">{fileName}</span>
-              <Badge variant="secondary" className="rounded-full">{rows.length} linhas</Badge>
+              <Badge variant="secondary" className="rounded-full">
+                {rows.length} linhas
+              </Badge>
               <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={reset}>
                 <X className="h-4 w-4" />
               </Button>
@@ -287,16 +406,27 @@ export function CsvImport() {
       {rows.length > 0 && (
         <>
           <Card className="rounded-3xl border-border/70 shadow-soft">
-            <CardHeader><CardTitle className="text-base">Mapear colunas</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base">Mapear colunas</CardTitle>
+            </CardHeader>
             <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {fields.map((f) => (
                 <div key={f.key} className="space-y-1.5">
                   <Label>{f.label}</Label>
-                  <Select value={map[f.key]} onValueChange={(v) => setMap((m) => ({ ...m, [f.key]: v }))}>
-                    <SelectTrigger className="h-10 rounded-2xl"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={map[f.key]}
+                    onValueChange={(v) => setMap((m) => ({ ...m, [f.key]: v }))}
+                  >
+                    <SelectTrigger className="h-10 rounded-2xl">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={NONE}>— Ignorar —</SelectItem>
-                      {headers.map((h, i) => <SelectItem key={`${h}-${i}`} value={String(i)}>{h || `Coluna ${i + 1}`}</SelectItem>)}
+                      {headers.map((h, i) => (
+                        <SelectItem key={`${h}-${i}`} value={String(i)}>
+                          {h || `Coluna ${i + 1}`}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -304,17 +434,25 @@ export function CsvImport() {
               <div className="space-y-1.5">
                 <Label>Conta padrão</Label>
                 <Select value={defaultAccount} onValueChange={setDefaultAccount}>
-                  <SelectTrigger className="h-10 rounded-2xl"><SelectValue placeholder="Sem conta" /></SelectTrigger>
+                  <SelectTrigger className="h-10 rounded-2xl">
+                    <SelectValue placeholder="Sem conta" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>Sem conta</SelectItem>
-                    {accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                    {accounts.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 p-3 md:col-span-2">
                 <div>
                   <div className="text-sm font-medium">Criar categorias ausentes</div>
-                  <div className="text-xs text-muted-foreground">Categorias do arquivo que ainda não existem serão criadas</div>
+                  <div className="text-xs text-muted-foreground">
+                    Categorias do arquivo que ainda não existem serão criadas
+                  </div>
                 </div>
                 <Switch checked={createCategories} onCheckedChange={setCreateCategories} />
               </div>
@@ -322,7 +460,8 @@ export function CsvImport() {
                 <div>
                   <div className="text-sm font-medium">Sugestões automáticas</div>
                   <div className="text-xs text-muted-foreground">
-                    Infere categoria e tipo pela descrição, usa a conta padrão (ou a única conta) e completa datas ausentes
+                    Infere categoria e tipo pela descrição, usa a conta padrão (ou a única conta) e
+                    completa datas ausentes
                   </div>
                 </div>
                 <Switch checked={smartFill} onCheckedChange={setSmartFill} />
@@ -336,20 +475,28 @@ export function CsvImport() {
                 Prévia — {valid.length} válida(s){invalid > 0 ? ` · ${invalid} com erro` : ""}
                 {suggestedCount > 0 ? ` · ${suggestedCount} com sugestão` : ""}
               </CardTitle>
-              <Button className="rounded-2xl" onClick={runImport} disabled={importing || valid.length === 0}>
-                {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+              <Button
+                className="rounded-2xl"
+                onClick={runImport}
+                disabled={importing || valid.length === 0}
+              >
+                {importing ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <UploadCloud className="mr-2 h-4 w-4" />
+                )}
                 Importar {valid.length} transação(ões)
               </Button>
             </CardHeader>
             <CardContent>
               {valid.length === 0 && (
                 <div className="mb-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-3 text-xs text-muted-foreground">
-                  Nenhuma linha válida. Confira em "Mapear colunas" se <b>Data</b> e <b>Valor</b> apontam para as colunas certas
-                  do seu arquivo — a coluna de data precisa ter datas (ex.: 05/08/2026) e a de valor, números (ex.: -450,90).
+                  Nenhuma linha válida. Confira em "Mapear colunas" se <b>Data</b> e <b>Valor</b>{" "}
+                  apontam para as colunas certas do seu arquivo — a coluna de data precisa ter datas
+                  (ex.: 05/08/2026) e a de valor, números (ex.: -450,90).
                 </div>
               )}
               <div className="overflow-x-auto">
-
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -366,31 +513,53 @@ export function CsvImport() {
                   </TableHeader>
                   <TableBody>
                     {parsed.slice(0, 20).map((p) => (
-                      <TableRow key={p.line} className={p.errors.length ? "bg-destructive/5" : undefined}>
+                      <TableRow
+                        key={p.line}
+                        className={p.errors.length ? "bg-destructive/5" : undefined}
+                      >
                         <TableCell className="text-muted-foreground">{p.line}</TableCell>
-                        <TableCell>{p.date ?? <span className="text-destructive">inválida</span>}</TableCell>
+                        <TableCell>
+                          {p.date ?? <span className="text-destructive">inválida</span>}
+                        </TableCell>
                         <TableCell className="font-medium">{p.description}</TableCell>
                         <TableCell className="text-muted-foreground">{p.catName || "—"}</TableCell>
                         <TableCell className="text-muted-foreground">
                           {accounts.find((a) => a.id === p.accountId)?.name ?? p.accName ?? "—"}
                         </TableCell>
                         <TableCell>
-                          {p.type === "income"
-                            ? <Badge className="rounded-full bg-success/12 text-success hover:bg-success/12">Receita</Badge>
-                            : <Badge className="rounded-full bg-destructive/12 text-destructive hover:bg-destructive/12">Despesa</Badge>}
+                          {p.type === "income" ? (
+                            <Badge className="rounded-full bg-success/12 text-success hover:bg-success/12">
+                              Receita
+                            </Badge>
+                          ) : (
+                            <Badge className="rounded-full bg-destructive/12 text-destructive hover:bg-destructive/12">
+                              Despesa
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-right font-bold">
-                          {p.amount === null ? <span className="text-destructive">inválido</span> : currency(p.amount)}
+                          {p.amount === null ? (
+                            <span className="text-destructive">inválido</span>
+                          ) : (
+                            currency(p.amount)
+                          )}
                         </TableCell>
                         <TableCell className="space-x-1">
                           {p.suggestions.map((s) => (
-                            <Badge key={s} variant="secondary" className="rounded-full text-[10px] font-normal">{s}</Badge>
+                            <Badge
+                              key={s}
+                              variant="secondary"
+                              className="rounded-full text-[10px] font-normal"
+                            >
+                              {s}
+                            </Badge>
                           ))}
                         </TableCell>
-                        <TableCell className="text-xs text-destructive">{p.errors.join(", ")}</TableCell>
+                        <TableCell className="text-xs text-destructive">
+                          {p.errors.join(", ")}
+                        </TableCell>
                       </TableRow>
                     ))}
-
                   </TableBody>
                 </Table>
                 {parsed.length > 20 && (

@@ -29,7 +29,9 @@ function AppRoute() {
       toast.error(ACCESS_RESTRICTED_MESSAGE);
       navigate({ to: "/login", replace: true });
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [user?.id, navigate]);
 
   if (loading || !user) {
